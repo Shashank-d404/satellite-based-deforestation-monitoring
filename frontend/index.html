@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Forest Monitor</title>
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+    <h1>🌳 Forest Monitor</h1>
+    <p>Satellite-Based Deforestation Monitoring</p>
+</header>
+
+<section class="dashboard">
+
+    <div class="card">
+        <h3>Baseline Year</h3>
+        <p id="baseline">—</p>
+    </div>
+
+    <div class="card">
+        <h3>Current Year</h3>
+        <p id="current">—</p>
+    </div>
+
+    <div class="card">
+        <h3>Mean NDVI Change</h3>
+        <p id="mean-change">—</p>
+    </div>
+
+    <div class="card">
+        <h3>Potential Vegetation Loss</h3>
+        <p id="loss-percent">—</p>
+    </div>
+
+</section>
+
+<section class="map-section">
+    <h2>Detected Change Areas</h2>
+    <div id="map"></div>
+</section>
+
+<section class="info">
+
+    <h2>Analysis</h2>
+
+    <p>
+        The system compares Sentinel-2 imagery from 2025 and 2026
+        using Normalized Difference Vegetation Index (NDVI).
+    </p>
+
+    <p>
+        Areas with an NDVI decrease below
+        <strong>-0.20</strong>
+        are currently flagged as potential vegetation loss.
+    </p>
+
+    <p id="status">Loading analysis...</p>
+
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+const map = L.map("map").setView([13.0, 77.5], 11);
+
+L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+        attribution: "&copy; OpenStreetMap contributors"
+    }
+).addTo(map);
+
+
+// -----------------------------
+// Load analysis statistics
+// -----------------------------
+
+fetch("/api/analysis")
+    .then(response => response.json())
+    .then(data => {
+
+        const stats = data.statistics;
+
+        document.getElementById("baseline").textContent =
+            data.comparison.baseline_year;
+
+        document.getElementById("current").textContent =
+            data.comparison.current_year;
+
+        document.getElementById("mean-change").textContent =
+            stats.mean_ndvi_change.toFixed(4);
+
+        document.getElementById("loss-percent").textContent =
+            stats.potential_loss_percentage.toFixed(2) + "%";
+
+        document.getElementById("status").textContent =
+            `${stats.potential_loss_pixels} pixels flagged as potential vegetation loss.`;
+    })
+    .catch(error => {
+        console.error("Analysis error:", error);
+
+        document.getElementById("status").textContent =
+            "Unable to load analysis data.";
+    });
+
+
+// -----------------------------
+// Load detected regions
+// -----------------------------
+
+fetch("/api/deforestation")
+    .then(response => response.json())
+    .then(data => {
+
+        const layer = L.geoJSON(data, {
+
+            style: {
+                weight: 2,
+                fillOpacity: 0.65
+            },
+
+            onEachFeature: function(feature, layer) {
+
+                layer.bindPopup(
+                    "<b>Potential vegetation loss</b><br>" +
+                    "Detected from NDVI change"
+                );
+
+            }
+
+        }).addTo(map);
+
+        if (layer.getBounds().isValid()) {
+            map.fitBounds(layer.getBounds(), {
+                padding: [30, 30]
+            });
+        }
+
+    })
+    .catch(error => {
+        console.error("GeoJSON error:", error);
+    });
+
+</script>
+
+</body>
+</html>
