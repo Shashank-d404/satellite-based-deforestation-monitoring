@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Forest Monitor</title>
 
@@ -11,149 +17,1143 @@
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     >
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="/style.css"
+    >
+
 </head>
+
 
 <body>
 
+
+<!-- =================================================
+     HEADER
+================================================== -->
+
 <header>
-    <h1>🌳 Forest Monitor</h1>
-    <p>Satellite-Based Deforestation Monitoring</p>
+
+    <div class="header-content">
+
+        <div>
+
+            <h1>
+                🌳 Forest Monitor
+            </h1>
+
+            <p>
+                Satellite-Based Deforestation Monitoring
+            </p>
+
+        </div>
+
+    </div>
+
 </header>
+
+
+
+<!-- =================================================
+     SEARCH SECTION
+================================================== -->
+
+<section class="search-section">
+
+    <div class="search-box">
+
+        <input
+            id="region-search"
+            type="text"
+            placeholder="Search any place, address, landmark, road, park, lake..."
+            autocomplete="off"
+        >
+
+        <button
+            id="search-button"
+            type="button"
+        >
+            Search
+        </button>
+
+    </div>
+
+
+    <div
+        id="search-results"
+        class="search-results"
+    ></div>
+
+
+    <div
+        id="selected-region"
+        class="selected-region"
+    ></div>
+
+</section>
+
+
+
+<!-- =================================================
+     DASHBOARD
+================================================== -->
 
 <section class="dashboard">
 
-    <div class="card">
-        <h3>Baseline Year</h3>
-        <p id="baseline">—</p>
-    </div>
 
     <div class="card">
-        <h3>Current Year</h3>
-        <p id="current">—</p>
+
+        <h3>
+            Baseline Year
+        </h3>
+
+        <p id="baseline">
+            —
+        </p>
+
     </div>
 
-    <div class="card">
-        <h3>Mean NDVI Change</h3>
-        <p id="mean-change">—</p>
-    </div>
 
     <div class="card">
-        <h3>Potential Vegetation Loss</h3>
-        <p id="loss-percent">—</p>
+
+        <h3>
+            Current Year
+        </h3>
+
+        <p id="current">
+            —
+        </p>
+
     </div>
+
+
+    <div class="card">
+
+        <h3>
+            Mean NDVI Change
+        </h3>
+
+        <p id="mean-change">
+            —
+        </p>
+
+    </div>
+
+
+    <div class="card">
+
+        <h3>
+            Potential Loss Share
+        </h3>
+
+        <p id="loss-share">
+            —
+        </p>
+
+    </div>
+
 
 </section>
+
+
+
+<!-- =================================================
+     SUMMARY
+================================================== -->
+
+<section class="summary">
+
+
+    <div class="summary-item">
+
+        <strong id="loss-pixels">
+            —
+        </strong>
+
+        <span>
+            Flagged Pixels
+        </span>
+
+    </div>
+
+
+    <div class="summary-item">
+
+        <strong id="valid-pixels">
+            —
+        </strong>
+
+        <span>
+            Valid Comparison Pixels
+        </span>
+
+    </div>
+
+
+    <div class="summary-item">
+
+        <strong id="region-count">
+            —
+        </strong>
+
+        <span>
+            Detected Regions
+        </span>
+
+    </div>
+
+
+    <div class="summary-item">
+
+        <strong id="threshold">
+            —
+        </strong>
+
+        <span>
+            NDVI Threshold
+        </span>
+
+    </div>
+
+
+</section>
+
+
+
+<!-- =================================================
+     MAP
+================================================== -->
 
 <section class="map-section">
-    <h2>Detected Change Areas</h2>
+
+
+    <div class="map-header">
+
+        <div>
+
+            <h2>
+                Potential Vegetation-Loss Areas
+            </h2>
+
+            <p id="map-status">
+                Loading detection data...
+            </p>
+
+        </div>
+
+
+        <button
+            id="reset-view"
+            type="button"
+        >
+            Reset View
+        </button>
+
+    </div>
+
+
     <div id="map"></div>
+
+
+    <div class="legend">
+
+        <div class="legend-title">
+            Legend
+        </div>
+
+
+        <div class="legend-row">
+
+            <span class="legend-box"></span>
+
+            Potential vegetation loss
+
+        </div>
+
+    </div>
+
+
 </section>
+
+
+
+<!-- =================================================
+     ANALYSIS INFORMATION
+================================================== -->
 
 <section class="info">
 
-    <h2>Analysis</h2>
+
+    <h2>
+        How the Detection Works
+    </h2>
+
 
     <p>
-        The system compares Sentinel-2 imagery from 2025 and 2026
-        using Normalized Difference Vegetation Index (NDVI).
+        Sentinel-2 Level-2A imagery is used to
+        calculate the Normalized Difference
+        Vegetation Index (NDVI) for 2025 and 2026.
     </p>
+
 
     <p>
-        Areas with an NDVI decrease below
-        <strong>-0.20</strong>
-        are currently flagged as potential vegetation loss.
+        Scene Classification Layer (SCL) filtering
+        removes unsuitable cloud and shadow classes
+        before comparing the two years.
     </p>
 
-    <p id="status">Loading analysis...</p>
+
+    <p>
+        Pixels with an NDVI decrease below
+        <strong id="threshold-text">
+            -0.20
+        </strong>
+        are flagged as potential vegetation loss.
+    </p>
+
+
+    <p id="status">
+        Loading satellite analysis...
+    </p>
+
 
 </section>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+<!-- =================================================
+     LEAFLET
+================================================== -->
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
+
+
 
 <script>
 
-const map = L.map("map").setView([13.0, 77.5], 11);
 
-L.tileLayer(
+// =================================================
+// MAP CONFIGURATION
+// =================================================
+
+const defaultCenter = [13.0, 77.5];
+
+const defaultZoom = 9;
+
+
+const map = L.map(
+    "map"
+).setView(
+    defaultCenter,
+    defaultZoom
+);
+
+
+// -------------------------------------------------
+// OpenStreetMap layer
+// -------------------------------------------------
+
+const streetLayer = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
-        attribution: "&copy; OpenStreetMap contributors"
+        attribution:
+            "&copy; OpenStreetMap contributors"
     }
 ).addTo(map);
 
 
-// -----------------------------
-// Load analysis statistics
-// -----------------------------
+// -------------------------------------------------
+// Detection layer group
+// -------------------------------------------------
 
-fetch("/api/analysis")
-    .then(response => response.json())
-    .then(data => {
-
-        const stats = data.statistics;
-
-        document.getElementById("baseline").textContent =
-            data.comparison.baseline_year;
-
-        document.getElementById("current").textContent =
-            data.comparison.current_year;
-
-        document.getElementById("mean-change").textContent =
-            stats.mean_ndvi_change.toFixed(4);
-
-        document.getElementById("loss-percent").textContent =
-            stats.potential_loss_percentage.toFixed(2) + "%";
-
-        document.getElementById("status").textContent =
-            `${stats.potential_loss_pixels} pixels flagged as potential vegetation loss.`;
-    })
-    .catch(error => {
-        console.error("Analysis error:", error);
-
-        document.getElementById("status").textContent =
-            "Unable to load analysis data.";
-    });
+const detectionLayerGroup =
+    L.layerGroup().addTo(map);
 
 
-// -----------------------------
-// Load detected regions
-// -----------------------------
+// -------------------------------------------------
+// Layer control
+// -------------------------------------------------
 
-fetch("/api/deforestation")
-    .then(response => response.json())
-    .then(data => {
+L.control.layers(
+    {
+        "Street Map": streetLayer
+    },
+    {
+        "Potential vegetation loss":
+            detectionLayerGroup
+    }
+).addTo(map);
 
-        const layer = L.geoJSON(data, {
 
-            style: {
-                weight: 2,
-                fillOpacity: 0.65
-            },
+// -------------------------------------------------
+// Variables
+// -------------------------------------------------
 
-            onEachFeature: function(feature, layer) {
+let detectionLayer = null;
 
-                layer.bindPopup(
-                    "<b>Potential vegetation loss</b><br>" +
-                    "Detected from NDVI change"
+let originalDetectionBounds = null;
+
+let searchMarker = null;
+
+
+
+// =================================================
+// SEARCH ELEMENTS
+// =================================================
+
+const searchInput =
+    document.getElementById(
+        "region-search"
+    );
+
+
+const searchButton =
+    document.getElementById(
+        "search-button"
+    );
+
+
+const searchResults =
+    document.getElementById(
+        "search-results"
+    );
+
+
+const selectedRegion =
+    document.getElementById(
+        "selected-region"
+    );
+
+
+
+// =================================================
+// SEARCH FUNCTION
+// =================================================
+
+function searchRegion() {
+
+    const query =
+        searchInput.value.trim();
+
+
+    // ---------------------------------------------
+    // Empty search
+    // ---------------------------------------------
+
+    if (!query) {
+
+        searchResults.innerHTML =
+            "<p>Please enter a place, address, landmark, road, or other location.</p>";
+
+        return;
+    }
+
+
+    // ---------------------------------------------
+    // Loading state
+    // ---------------------------------------------
+
+    searchResults.innerHTML =
+        "<p>Searching for locations...</p>";
+
+    selectedRegion.innerHTML =
+        "";
+
+
+
+    // ---------------------------------------------
+    // Call Flask geocoding API
+    // ---------------------------------------------
+
+    fetch(
+        `/api/geocode?q=${encodeURIComponent(query)}`
+    )
+
+        .then(response => {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    `Search failed with status ${response.status}`
                 );
 
             }
 
-        }).addTo(map);
+            return response.json();
 
-        if (layer.getBounds().isValid()) {
-            map.fitBounds(layer.getBounds(), {
-                padding: [30, 30]
-            });
+        })
+
+
+        .then(data => {
+
+            // Clear old results
+
+            searchResults.innerHTML =
+                "";
+
+
+            // -------------------------------------
+            // No results
+            // -------------------------------------
+
+            if (
+                !data.results ||
+                data.results.length === 0
+            ) {
+
+                searchResults.innerHTML =
+                    "<p>No matching locations were found.</p>";
+
+                return;
+            }
+
+
+
+            // -------------------------------------
+            // Result heading
+            // -------------------------------------
+
+            const heading =
+                document.createElement(
+                    "p"
+                );
+
+            heading.textContent =
+                `${data.count} location result(s) found`;
+
+            searchResults.appendChild(
+                heading
+            );
+
+
+
+            // -------------------------------------
+            // Create result buttons
+            // -------------------------------------
+
+            data.results.forEach(
+                function(location) {
+
+                    const button =
+                        document.createElement(
+                            "button"
+                        );
+
+
+                    button.type =
+                        "button";
+
+
+                    button.className =
+                        "result-button";
+
+
+
+                    // ---------------------------------
+                    // Result name
+                    // ---------------------------------
+
+                    const name =
+                        document.createElement(
+                            "strong"
+                        );
+
+
+                    name.textContent =
+                        location.name;
+
+
+                    button.appendChild(
+                        name
+                    );
+
+
+
+                    // ---------------------------------
+                    // Result type
+                    // ---------------------------------
+
+                    const details =
+                        document.createElement(
+                            "small"
+                        );
+
+
+                    details.textContent =
+                        `${location.category || "location"} · ` +
+                        `${location.type || "unknown"}`;
+
+
+                    button.appendChild(
+                        details
+                    );
+
+
+
+                    // ---------------------------------
+                    // Result click
+                    // ---------------------------------
+
+                    button.addEventListener(
+                        "click",
+                        function() {
+
+                            const latitude =
+                                location.latitude;
+
+
+                            const longitude =
+                                location.longitude;
+
+
+
+                            // -------------------------
+                            // Move map
+                            // -------------------------
+
+                            map.setView(
+                                [
+                                    latitude,
+                                    longitude
+                                ],
+                                14
+                            );
+
+
+
+                            // -------------------------
+                            // Remove previous marker
+                            // -------------------------
+
+                            if (searchMarker) {
+
+                                map.removeLayer(
+                                    searchMarker
+                                );
+
+                            }
+
+
+
+                            // -------------------------
+                            // Add new search marker
+                            // -------------------------
+
+                            searchMarker =
+                                L.marker(
+                                    [
+                                        latitude,
+                                        longitude
+                                    ]
+                                ).addTo(map);
+
+
+
+                            searchMarker.bindPopup(
+                                `<strong>${escapeHtml(
+                                    location.name
+                                )}</strong><br>` +
+
+                                `${escapeHtml(
+                                    location.category ||
+                                    "location"
+                                )} · ` +
+
+                                `${escapeHtml(
+                                    location.type ||
+                                    "unknown"
+                                )}`
+                            ).openPopup();
+
+
+
+                            // -------------------------
+                            // Show selected location
+                            // -------------------------
+
+                            selectedRegion.innerHTML =
+                                "";
+
+
+                            const selectedTitle =
+                                document.createElement(
+                                    "strong"
+                                );
+
+
+                            selectedTitle.textContent =
+                                "Selected location: ";
+
+
+                            selectedRegion.appendChild(
+                                selectedTitle
+                            );
+
+
+                            const selectedName =
+                                document.createTextNode(
+                                    location.name
+                                );
+
+
+                            selectedRegion.appendChild(
+                                selectedName
+                            );
+
+
+                            selectedRegion.appendChild(
+                                document.createElement(
+                                    "br"
+                                )
+                            );
+
+
+                            const coordinates =
+                                document.createElement(
+                                    "span"
+                                );
+
+
+                            coordinates.textContent =
+                                `Latitude: ${latitude.toFixed(5)} | ` +
+                                `Longitude: ${longitude.toFixed(5)}`;
+
+
+                            selectedRegion.appendChild(
+                                coordinates
+                            );
+
+
+
+                            // -------------------------
+                            // Hide search results
+                            // -------------------------
+
+                            searchResults.innerHTML =
+                                "";
+
+                        }
+                    );
+
+
+                    searchResults.appendChild(
+                        button
+                    );
+
+                }
+            );
+
+        })
+
+
+        .catch(error => {
+
+            console.error(
+                "Search error:",
+                error
+            );
+
+
+            searchResults.innerHTML =
+                "<p>Unable to search for this location. Please try again.</p>";
+
+        });
+
+}
+
+
+
+// =================================================
+// BASIC HTML ESCAPING
+// =================================================
+
+function escapeHtml(value) {
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+
+// =================================================
+// SEARCH BUTTON
+// =================================================
+
+searchButton.addEventListener(
+    "click",
+    searchRegion
+);
+
+
+
+// =================================================
+// ENTER KEY SEARCH
+// =================================================
+
+searchInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "Enter"
+        ) {
+
+            searchRegion();
+
         }
 
+    }
+);
+
+
+
+// =================================================
+// RESET MAP
+// =================================================
+
+document
+    .getElementById("reset-view")
+    .addEventListener(
+        "click",
+        function() {
+
+
+            // Remove search marker
+
+            if (searchMarker) {
+
+                map.removeLayer(
+                    searchMarker
+                );
+
+                searchMarker =
+                    null;
+
+            }
+
+
+            // Clear selected region
+
+            selectedRegion.innerHTML =
+                "";
+
+
+            // Return to detections
+
+            if (
+                originalDetectionBounds &&
+                originalDetectionBounds.isValid()
+            ) {
+
+                map.fitBounds(
+                    originalDetectionBounds,
+                    {
+                        padding: [30, 30]
+                    }
+                );
+
+            } else {
+
+                map.setView(
+                    defaultCenter,
+                    defaultZoom
+                );
+
+            }
+
+        }
+    );
+
+
+
+// =================================================
+// LOAD ANALYSIS
+// =================================================
+
+fetch(
+    "/api/analysis"
+)
+
+    .then(response => {
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Analysis API returned ${response.status}`
+            );
+
+        }
+
+        return response.json();
+
     })
+
+
+    .then(data => {
+
+        const stats =
+            data.statistics;
+
+
+        document.getElementById(
+            "baseline"
+        ).textContent =
+            data.comparison.baseline_year;
+
+
+        document.getElementById(
+            "current"
+        ).textContent =
+            data.comparison.current_year;
+
+
+        document.getElementById(
+            "mean-change"
+        ).textContent =
+            stats.mean_ndvi_change.toFixed(4);
+
+
+        document.getElementById(
+            "loss-share"
+        ).textContent =
+            stats.potential_loss_share.toFixed(2)
+            + "%";
+
+
+        document.getElementById(
+            "loss-pixels"
+        ).textContent =
+            stats.potential_loss_pixels
+                .toLocaleString();
+
+
+        document.getElementById(
+            "valid-pixels"
+        ).textContent =
+            stats.valid_pixels
+                .toLocaleString();
+
+
+        document.getElementById(
+            "threshold"
+        ).textContent =
+            data.threshold.toFixed(2);
+
+
+        document.getElementById(
+            "threshold-text"
+        ).textContent =
+            data.threshold.toFixed(2);
+
+
+        document.getElementById(
+            "status"
+        ).textContent =
+            `${stats.potential_loss_pixels} pixels were flagged as potential vegetation loss after cloud/shadow masking.`;
+
+    })
+
+
     .catch(error => {
-        console.error("GeoJSON error:", error);
+
+        console.error(
+            "Analysis error:",
+            error
+        );
+
+
+        document.getElementById(
+            "status"
+        ).textContent =
+            "Unable to load satellite analysis.";
+
     });
+
+
+
+// =================================================
+// LOAD DETECTION GEOJSON
+// =================================================
+
+fetch(
+    "/api/deforestation"
+)
+
+    .then(response => {
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Deforestation API returned ${response.status}`
+            );
+
+        }
+
+        return response.json();
+
+    })
+
+
+    .then(data => {
+
+        document.getElementById(
+            "region-count"
+        ).textContent =
+            data.features.length;
+
+
+
+        // -----------------------------------------
+        // Create GeoJSON layer
+        // -----------------------------------------
+
+        detectionLayer =
+            L.geoJSON(
+                data,
+                {
+
+                    style: {
+
+                        weight: 2,
+
+                        fillOpacity: 0.65
+
+                    },
+
+
+                    onEachFeature:
+                    function(
+                        feature,
+                        layer
+                    ) {
+
+                        const properties =
+                            feature.properties;
+
+
+                        layer.bindPopup(
+
+                            `<strong>
+                                Potential vegetation loss
+                            </strong>
+                            <br>
+                            Detection method:
+                            Cloud-masked NDVI change
+                            <br>
+                            Threshold:
+                            ${properties.threshold}`
+
+                        );
+
+                    }
+
+                }
+            );
+
+
+
+        // -----------------------------------------
+        // Add to layer group
+        // -----------------------------------------
+
+        detectionLayerGroup.addLayer(
+            detectionLayer
+        );
+
+
+
+        // -----------------------------------------
+        // Save detection bounds
+        // -----------------------------------------
+
+        originalDetectionBounds =
+            detectionLayer.getBounds();
+
+
+
+        // -----------------------------------------
+        // Zoom to detections
+        // -----------------------------------------
+
+        if (
+            originalDetectionBounds.isValid()
+        ) {
+
+            map.fitBounds(
+                originalDetectionBounds,
+                {
+                    padding: [30, 30]
+                }
+            );
+
+        }
+
+
+
+        // -----------------------------------------
+        // Map status
+        // -----------------------------------------
+
+        document.getElementById(
+            "map-status"
+        ).textContent =
+            `${data.features.length} detected regions available on the map.`;
+
+    })
+
+
+    .catch(error => {
+
+        console.error(
+            "GeoJSON error:",
+            error
+        );
+
+
+        document.getElementById(
+            "map-status"
+        ).textContent =
+            "Unable to load detected regions.";
+
+
+        document.getElementById(
+            "region-count"
+        ).textContent =
+            "0";
+
+    });
+
 
 </script>
 
+
 </body>
+
 </html>
