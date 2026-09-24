@@ -6,24 +6,25 @@ from flask import Flask, jsonify, request, send_from_directory
 
 
 # ==================================================
-# Project paths
+# PROJECT PATHS
 # ==================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 FRONTEND_DIR = BASE_DIR / "frontend"
 NDVI_DIR = BASE_DIR / "data" / "ndvi"
+VISUAL_DIR = NDVI_DIR / "visuals"
 
 
 # ==================================================
-# Flask application
+# FLASK APPLICATION
 # ==================================================
 
 app = Flask(__name__)
 
 
 # ==================================================
-# Frontend
+# FRONTEND ROUTES
 # ==================================================
 
 @app.route("/")
@@ -43,7 +44,19 @@ def frontend_files(filename):
 
 
 # ==================================================
-# Health check
+# NDVI VISUALIZATION FILES
+# ==================================================
+
+@app.route("/visuals/<path:filename>")
+def visualization_files(filename):
+    return send_from_directory(
+        VISUAL_DIR,
+        filename
+    )
+
+
+# ==================================================
+# HEALTH CHECK
 # ==================================================
 
 @app.route("/api/health", methods=["GET"])
@@ -56,7 +69,7 @@ def health_check():
 
 
 # ==================================================
-# Satellite analysis
+# SATELLITE ANALYSIS
 # ==================================================
 
 @app.route("/api/analysis", methods=["GET"])
@@ -75,7 +88,8 @@ def analysis():
         "method":
             "Cloud-masked NDVI change detection",
 
-        "threshold": -0.20,
+        "threshold":
+            -0.20,
 
         "statistics": {
 
@@ -128,7 +142,7 @@ def analysis():
 
 
 # ==================================================
-# Potential vegetation-loss GeoJSON
+# POTENTIAL VEGETATION-LOSS GEOJSON
 # ==================================================
 
 @app.route("/api/deforestation", methods=["GET"])
@@ -146,7 +160,10 @@ def deforestation():
                 "Cloud-masked deforestation GeoJSON not found"
         }), 404
 
-    with open(geojson_path, "r") as f:
+    with open(
+        geojson_path,
+        "r"
+    ) as f:
 
         data = json.load(f)
 
@@ -154,7 +171,47 @@ def deforestation():
 
 
 # ==================================================
-# Universal place search
+# NDVI VISUALIZATION METADATA
+# ==================================================
+
+@app.route("/api/visuals", methods=["GET"])
+def visuals():
+
+    metadata_path = (
+        VISUAL_DIR /
+        "metadata.json"
+    )
+
+    if not metadata_path.exists():
+
+        return jsonify({
+            "error":
+                "NDVI visualization metadata not found"
+        }), 404
+
+    with open(
+        metadata_path,
+        "r"
+    ) as f:
+
+        metadata = json.load(f)
+
+    # Convert local file paths into browser URLs.
+    for layer in metadata.values():
+
+        filename = Path(
+            layer["image"]
+        ).name
+
+        layer["url"] = (
+            f"/visuals/{filename}"
+        )
+
+    return jsonify(metadata)
+
+
+# ==================================================
+# UNIVERSAL PLACE SEARCH
 # ==================================================
 
 @app.route("/api/geocode", methods=["GET"])
@@ -165,7 +222,6 @@ def geocode():
         ""
     ).strip()
 
-
     if not query:
 
         return jsonify({
@@ -173,54 +229,39 @@ def geocode():
                 "Search query is required"
         }), 400
 
-
-    # Nominatim supports these thematic layers:
-    #
-    # address  -> addresses, streets,
-    #             neighbourhoods, cities, villages
-    #
-    # poi      -> shops, restaurants,
-    #             landmarks, hotels, etc.
-    #
-    # railway  -> railway-related features
-    #
-    # natural  -> rivers, lakes, mountains, etc.
-    #
-    # manmade  -> other human-made features
-    #
-    # We intentionally do NOT specify featureType,
-    # so the search is not restricted to districts/cities.
-
     url = (
         "https://nominatim.openstreetmap.org/search"
     )
 
-
     params = {
 
-        "q": query,
+        "q":
+            query,
 
-        "format": "jsonv2",
+        "format":
+            "jsonv2",
 
-        "limit": 10,
+        "limit":
+            10,
 
-        "addressdetails": 1,
+        "addressdetails":
+            1,
 
-        "namedetails": 1,
+        "namedetails":
+            1,
 
         "layer":
             "address,poi,railway,natural,manmade",
 
-        "accept-language": "en"
+        "accept-language":
+            "en"
     }
-
 
     headers = {
 
         "User-Agent":
             "ForestMonitorHackathon/1.0"
     }
-
 
     try:
 
@@ -235,9 +276,7 @@ def geocode():
 
         results = response.json()
 
-
         locations = []
-
 
         for result in results:
 
@@ -245,7 +284,6 @@ def geocode():
                 "address",
                 {}
             )
-
 
             locations.append({
 
@@ -288,13 +326,14 @@ def geocode():
                         "osm_id"
                     ),
 
-                "address": address
+                "address":
+                    address
             })
-
 
         return jsonify({
 
-            "query": query,
+            "query":
+                query,
 
             "count":
                 len(locations),
@@ -302,7 +341,6 @@ def geocode():
             "results":
                 locations
         })
-
 
     except requests.RequestException as error:
 
@@ -317,7 +355,7 @@ def geocode():
 
 
 # ==================================================
-# Run Flask
+# RUN FLASK
 # ==================================================
 
 if __name__ == "__main__":
