@@ -1,19 +1,43 @@
 import json
 from pathlib import Path
-
 import requests
-from flask import Flask, jsonify, request, send_from_directory
+
+from flask import (
+    Flask,
+    jsonify,
+    request,
+    send_from_directory
+)
+
+from dynamic_analysis import run_comparison
 
 
 # ==================================================
 # PROJECT PATHS
 # ==================================================
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = (
+    Path(__file__)
+    .resolve()
+    .parent
+    .parent
+)
 
-FRONTEND_DIR = BASE_DIR / "frontend"
-NDVI_DIR = BASE_DIR / "data" / "ndvi"
-VISUAL_DIR = NDVI_DIR / "visuals"
+FRONTEND_DIR = (
+    BASE_DIR / "frontend"
+)
+
+NDVI_DIR = (
+    BASE_DIR / "data" / "ndvi"
+)
+
+VISUAL_DIR = (
+    NDVI_DIR / "visuals"
+)
+
+DYNAMIC_DIR = (
+    BASE_DIR / "data" / "dynamic_analysis"
+)
 
 
 # ==================================================
@@ -24,11 +48,12 @@ app = Flask(__name__)
 
 
 # ==================================================
-# FRONTEND ROUTES
+# FRONTEND
 # ==================================================
 
 @app.route("/")
 def home():
+
     return send_from_directory(
         FRONTEND_DIR,
         "index.html"
@@ -37,6 +62,7 @@ def home():
 
 @app.route("/<path:filename>")
 def frontend_files(filename):
+
     return send_from_directory(
         FRONTEND_DIR,
         filename
@@ -44,13 +70,38 @@ def frontend_files(filename):
 
 
 # ==================================================
-# NDVI VISUALIZATION FILES
+# STATIC NDVI VISUALS
 # ==================================================
 
-@app.route("/visuals/<path:filename>")
+@app.route(
+    "/visuals/<path:filename>"
+)
 def visualization_files(filename):
+
     return send_from_directory(
         VISUAL_DIR,
+        filename
+    )
+
+
+# ==================================================
+# DYNAMIC ANALYSIS FILES
+# ==================================================
+
+@app.route(
+    "/dynamic/<pair>/<path:filename>"
+)
+def dynamic_files(
+    pair,
+    filename
+):
+
+    directory = (
+        DYNAMIC_DIR / pair
+    )
+
+    return send_from_directory(
+        directory,
         filename
     )
 
@@ -59,20 +110,31 @@ def visualization_files(filename):
 # HEALTH CHECK
 # ==================================================
 
-@app.route("/api/health", methods=["GET"])
+@app.route(
+    "/api/health",
+    methods=["GET"]
+)
 def health_check():
 
     return jsonify({
-        "status": "ok",
-        "message": "Forest Monitor API is running"
+
+        "status":
+            "ok",
+
+        "message":
+            "Forest Monitor API is running"
+
     })
 
 
 # ==================================================
-# SATELLITE ANALYSIS
+# ORIGINAL VERIFIED ANALYSIS
 # ==================================================
 
-@app.route("/api/analysis", methods=["GET"])
+@app.route(
+    "/api/analysis",
+    methods=["GET"]
+)
 def analysis():
 
     return jsonify({
@@ -81,8 +143,13 @@ def analysis():
             "Satellite-Based Deforestation Monitoring",
 
         "comparison": {
-            "baseline_year": 2025,
-            "current_year": 2026
+
+            "baseline_year":
+                2025,
+
+            "current_year":
+                2026
+
         },
 
         "method":
@@ -110,42 +177,20 @@ def analysis():
 
             "potential_loss_share":
                 0.01
-        },
 
-        "outputs": {
-
-            "ndvi_2025":
-                str(
-                    NDVI_DIR /
-                    "ndvi_2025_masked.tif"
-                ),
-
-            "ndvi_2026":
-                str(
-                    NDVI_DIR /
-                    "ndvi_2026_masked.tif"
-                ),
-
-            "ndvi_change":
-                str(
-                    NDVI_DIR /
-                    "ndvi_change_masked.tif"
-                ),
-
-            "deforestation_mask":
-                str(
-                    NDVI_DIR /
-                    "deforestation_mask_masked.tif"
-                )
         }
+
     })
 
 
 # ==================================================
-# POTENTIAL VEGETATION-LOSS GEOJSON
+# ORIGINAL VERIFIED GEOJSON
 # ==================================================
 
-@app.route("/api/deforestation", methods=["GET"])
+@app.route(
+    "/api/deforestation",
+    methods=["GET"]
+)
 def deforestation():
 
     geojson_path = (
@@ -156,9 +201,12 @@ def deforestation():
     if not geojson_path.exists():
 
         return jsonify({
+
             "error":
                 "Cloud-masked deforestation GeoJSON not found"
+
         }), 404
+
 
     with open(
         geojson_path,
@@ -167,14 +215,18 @@ def deforestation():
 
         data = json.load(f)
 
+
     return jsonify(data)
 
 
 # ==================================================
-# NDVI VISUALIZATION METADATA
+# ORIGINAL STATIC VISUAL METADATA
 # ==================================================
 
-@app.route("/api/visuals", methods=["GET"])
+@app.route(
+    "/api/visuals",
+    methods=["GET"]
+)
 def visuals():
 
     metadata_path = (
@@ -185,9 +237,12 @@ def visuals():
     if not metadata_path.exists():
 
         return jsonify({
+
             "error":
                 "NDVI visualization metadata not found"
+
         }), 404
+
 
     with open(
         metadata_path,
@@ -196,7 +251,7 @@ def visuals():
 
         metadata = json.load(f)
 
-    # Convert local file paths into browser URLs.
+
     for layer in metadata.values():
 
         filename = Path(
@@ -207,14 +262,128 @@ def visuals():
             f"/visuals/{filename}"
         )
 
+
     return jsonify(metadata)
+
+
+# ==================================================
+# DYNAMIC YEAR ANALYSIS
+# ==================================================
+
+@app.route(
+    "/api/run-analysis",
+    methods=["POST"]
+)
+def run_analysis():
+
+    data = request.get_json(
+        silent=True
+    )
+
+
+    if not data:
+
+        return jsonify({
+
+            "error":
+                "JSON request body is required"
+
+        }), 400
+
+
+    try:
+
+        baseline_year = int(
+            data.get(
+                "baseline_year"
+            )
+        )
+
+        current_year = int(
+            data.get(
+                "current_year"
+            )
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return jsonify({
+
+            "error":
+                "Years must be integers"
+
+        }), 400
+
+
+    if baseline_year >= current_year:
+
+        return jsonify({
+
+            "error":
+                "Baseline year must be earlier than current year"
+
+        }), 400
+
+
+    if (
+        baseline_year < 2016
+        or current_year < 2016
+    ):
+
+        return jsonify({
+
+            "error":
+                "The selectable Sentinel-2 comparison range starts at 2016"
+
+        }), 400
+
+
+    if (
+        baseline_year > 2026
+        or current_year > 2026
+    ):
+
+        return jsonify({
+
+            "error":
+                "Year cannot be later than 2026"
+
+        }), 400
+
+
+    try:
+
+        result = run_comparison(
+
+            baseline_year,
+            current_year
+
+        )
+
+        return jsonify(result)
+
+
+    except Exception as error:
+
+        return jsonify({
+
+            "error":
+                str(error)
+
+        }), 500
 
 
 # ==================================================
 # UNIVERSAL PLACE SEARCH
 # ==================================================
 
-@app.route("/api/geocode", methods=["GET"])
+@app.route(
+    "/api/geocode",
+    methods=["GET"]
+)
 def geocode():
 
     query = request.args.get(
@@ -222,16 +391,21 @@ def geocode():
         ""
     ).strip()
 
+
     if not query:
 
         return jsonify({
+
             "error":
                 "Search query is required"
+
         }), 400
+
 
     url = (
         "https://nominatim.openstreetmap.org/search"
     )
+
 
     params = {
 
@@ -255,28 +429,39 @@ def geocode():
 
         "accept-language":
             "en"
+
     }
+
 
     headers = {
 
         "User-Agent":
             "ForestMonitorHackathon/1.0"
+
     }
+
 
     try:
 
         response = requests.get(
+
             url,
+
             params=params,
+
             headers=headers,
+
             timeout=10
+
         )
 
         response.raise_for_status()
 
         results = response.json()
 
+
         locations = []
+
 
         for result in results:
 
@@ -284,6 +469,7 @@ def geocode():
                 "address",
                 {}
             )
+
 
             locations.append({
 
@@ -328,7 +514,9 @@ def geocode():
 
                 "address":
                     address
+
             })
+
 
         return jsonify({
 
@@ -340,7 +528,9 @@ def geocode():
 
             "results":
                 locations
+
         })
+
 
     except requests.RequestException as error:
 
@@ -351,6 +541,7 @@ def geocode():
 
             "details":
                 str(error)
+
         }), 502
 
 
