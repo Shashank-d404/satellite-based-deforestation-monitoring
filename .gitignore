@@ -143,3 +143,33 @@ vite.config.ts.timestamp-*
 .vite/
 data/ndvi/*.tif
 data/sentinel2/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+.venv/
+
+# Secrets
+.env
+
+# Satellite data
+ data/sentinel2/
+data/ndvi/*.tif
+data/dynamic_analysis/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+.venv/
+
+# Secrets
+.env
+
+# Satellite data
+data/sentinel2/
+data/ndvi/*.tif
+data/dynamic_analysis/

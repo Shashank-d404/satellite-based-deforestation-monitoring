@@ -30,10 +30,6 @@
 <body>
 
 
-<!-- =================================================
-     HEADER
-================================================== -->
-
 <header>
 
     <div class="header-content">
@@ -53,7 +49,7 @@
 
 
 <!-- =================================================
-     SEARCH
+     REGION SEARCH
 ================================================== -->
 
 <section class="search-section">
@@ -87,6 +83,77 @@
         id="selected-region"
         class="selected-region"
     ></div>
+
+</section>
+
+
+
+<!-- =================================================
+     YEAR SELECTION
+================================================== -->
+
+<section class="analysis-controls">
+
+    <div class="analysis-control-title">
+
+        <h2>
+            Satellite Comparison
+        </h2>
+
+        <p>
+            Compare the same study area across two selected years.
+        </p>
+
+    </div>
+
+
+    <div class="year-controls">
+
+        <div class="year-field">
+
+            <label for="baseline-year">
+                Baseline Year
+            </label>
+
+            <select
+                id="baseline-year"
+            ></select>
+
+        </div>
+
+
+        <div class="arrow">
+            →
+        </div>
+
+
+        <div class="year-field">
+
+            <label for="current-year">
+                Current Year
+            </label>
+
+            <select
+                id="current-year"
+            ></select>
+
+        </div>
+
+
+        <button
+            id="run-analysis"
+            type="button"
+        >
+            Run Analysis
+        </button>
+
+    </div>
+
+
+    <p
+        id="analysis-message"
+        class="analysis-message"
+    ></p>
 
 </section>
 
@@ -219,6 +286,67 @@
 
 
 <!-- =================================================
+     SATELLITE METADATA
+================================================== -->
+
+<section class="scene-info">
+
+    <div>
+
+        <strong>
+            Baseline Scene
+        </strong>
+
+        <span id="baseline-scene">
+            —
+        </span>
+
+    </div>
+
+
+    <div>
+
+        <strong>
+            Baseline Cloud Cover
+        </strong>
+
+        <span id="baseline-cloud">
+            —
+        </span>
+
+    </div>
+
+
+    <div>
+
+        <strong>
+            Current Scene
+        </strong>
+
+        <span id="current-scene">
+            —
+        </span>
+
+    </div>
+
+
+    <div>
+
+        <strong>
+            Current Cloud Cover
+        </strong>
+
+        <span id="current-cloud">
+            —
+        </span>
+
+    </div>
+
+</section>
+
+
+
+<!-- =================================================
      MAP
 ================================================== -->
 
@@ -234,7 +362,7 @@
             </h2>
 
             <p id="map-status">
-                Loading satellite analysis...
+                Loading analysis...
             </p>
 
         </div>
@@ -256,7 +384,7 @@
     <div class="legend">
 
         <div class="legend-title">
-            NDVI Legend
+            NDVI
         </div>
 
 
@@ -287,11 +415,11 @@
         <div class="gradient-labels">
 
             <span>
-                Vegetation decrease
+                Decrease
             </span>
 
             <span>
-                Vegetation increase
+                Increase
             </span>
 
         </div>
@@ -323,31 +451,37 @@
 
 <section class="info">
 
-
     <h2>
         How the Detection Works
     </h2>
 
 
     <p>
+
         Sentinel-2 Level-2A imagery is used to
-        calculate NDVI for 2025 and 2026.
+        calculate NDVI for the selected baseline
+        and current years.
+
     </p>
 
 
     <p>
+
         Scene Classification Layer (SCL) filtering
         removes unsuitable cloud and shadow classes
         before comparing the two years.
+
     </p>
 
 
     <p>
+
         Pixels with an NDVI decrease below
         <strong id="threshold-text">
             -0.20
         </strong>
         are flagged as potential vegetation loss.
+
     </p>
 
 
@@ -355,14 +489,9 @@
         Loading satellite analysis...
     </p>
 
-
 </section>
 
 
-
-<!-- =================================================
-     LEAFLET
-================================================== -->
 
 <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -371,6 +500,96 @@
 
 
 <script>
+
+
+// =================================================
+// YEAR SELECTORS
+// =================================================
+
+const MIN_YEAR = 2016;
+
+const MAX_YEAR = new Date().getFullYear();
+
+
+const baselineSelect =
+    document.getElementById(
+        "baseline-year"
+    );
+
+
+const currentSelect =
+    document.getElementById(
+        "current-year"
+    );
+
+
+const runButton =
+    document.getElementById(
+        "run-analysis"
+    );
+
+
+const analysisMessage =
+    document.getElementById(
+        "analysis-message"
+    );
+
+
+// -------------------------------------------------
+// Populate year selectors
+// -------------------------------------------------
+
+function populateYears() {
+
+    for (
+        let year = MAX_YEAR;
+        year >= MIN_YEAR;
+        year--
+    ) {
+
+        const baselineOption =
+            document.createElement(
+                "option"
+            );
+
+        baselineOption.value =
+            year;
+
+        baselineOption.textContent =
+            year;
+
+        baselineSelect.appendChild(
+            baselineOption
+        );
+
+
+        const currentOption =
+            document.createElement(
+                "option"
+            );
+
+        currentOption.value =
+            year;
+
+        currentOption.textContent =
+            year;
+
+        currentSelect.appendChild(
+            currentOption
+        );
+
+    }
+
+
+    baselineSelect.value = "2025";
+
+    currentSelect.value = "2026";
+
+}
+
+
+populateYears();
+
 
 
 // =================================================
@@ -394,30 +613,19 @@ const map = L.map(
 );
 
 
-// -------------------------------------------------
-// Base map
-// -------------------------------------------------
+const streetLayer =
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            attribution:
+                "&copy; OpenStreetMap contributors"
+        }
+    ).addTo(map);
 
-const streetLayer = L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {
-        attribution:
-            "&copy; OpenStreetMap contributors"
-    }
-).addTo(map);
-
-
-// -------------------------------------------------
-// Detection layer
-// -------------------------------------------------
 
 const detectionLayerGroup =
     L.layerGroup().addTo(map);
 
-
-// -------------------------------------------------
-// Layer control
-// -------------------------------------------------
 
 const layerControl =
     L.control.layers(
@@ -432,17 +640,14 @@ const layerControl =
     ).addTo(map);
 
 
-// -------------------------------------------------
-// Variables
-// -------------------------------------------------
+let dynamicLayers = {};
 
-let detectionLayer = null;
-
-let originalDetectionBounds = null;
+let dynamicLayerControlEntries = [];
 
 let analysisBounds = null;
 
 let searchMarker = null;
+
 
 
 // =================================================
@@ -473,9 +678,37 @@ const selectedRegion =
     );
 
 
-// -------------------------------------------------
-// Search function
-// -------------------------------------------------
+function escapeHtml(value) {
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
 
 function searchRegion() {
 
@@ -486,18 +719,15 @@ function searchRegion() {
     if (!query) {
 
         searchResults.innerHTML =
-            "<p>Please enter a place, address, landmark, road, or other location.</p>";
+            "<p>Please enter a location.</p>";
 
         return;
+
     }
 
 
     searchResults.innerHTML =
-        "<p>Searching for locations...</p>";
-
-
-    selectedRegion.innerHTML =
-        "";
+        "<p>Searching...</p>";
 
 
     fetch(
@@ -518,6 +748,7 @@ function searchRegion() {
 
         })
 
+
         .then(data => {
 
             searchResults.innerHTML =
@@ -530,9 +761,10 @@ function searchRegion() {
             ) {
 
                 searchResults.innerHTML =
-                    "<p>No matching locations were found.</p>";
+                    "<p>No matching locations found.</p>";
 
                 return;
+
             }
 
 
@@ -543,7 +775,7 @@ function searchRegion() {
 
 
             heading.textContent =
-                `${data.count} location result(s) found`;
+                `${data.count} result(s) found`;
 
 
             searchResults.appendChild(
@@ -606,6 +838,7 @@ function searchRegion() {
                             const latitude =
                                 location.latitude;
 
+
                             const longitude =
                                 location.longitude;
 
@@ -619,7 +852,9 @@ function searchRegion() {
                             );
 
 
-                            if (searchMarker) {
+                            if (
+                                searchMarker
+                            ) {
 
                                 map.removeLayer(
                                     searchMarker
@@ -655,52 +890,15 @@ function searchRegion() {
 
 
                             selectedRegion.innerHTML =
-                                "";
-
-
-                            const title =
-                                document.createElement(
-                                    "strong"
-                                );
-
-
-                            title.textContent =
-                                "Selected location: ";
-
-
-                            selectedRegion.appendChild(
-                                title
-                            );
-
-
-                            selectedRegion.appendChild(
-                                document.createTextNode(
+                                `<strong>Selected location:</strong> ` +
+                                `${escapeHtml(
                                     location.name
-                                )
-                            );
-
-
-                            selectedRegion.appendChild(
-                                document.createElement(
-                                    "br"
-                                )
-                            );
-
-
-                            const coordinates =
-                                document.createElement(
-                                    "span"
-                                );
-
-
-                            coordinates.textContent =
-                                `Latitude: ${latitude.toFixed(5)} | ` +
-                                `Longitude: ${longitude.toFixed(5)}`;
-
-
-                            selectedRegion.appendChild(
-                                coordinates
-                            );
+                                )}<br>` +
+                                `<span>Latitude: ${
+                                    latitude.toFixed(5)
+                                } | Longitude: ${
+                                    longitude.toFixed(5)
+                                }</span>`;
 
 
                             searchResults.innerHTML =
@@ -719,71 +917,27 @@ function searchRegion() {
 
         })
 
+
         .catch(error => {
 
             console.error(
-                "Search error:",
                 error
             );
 
 
             searchResults.innerHTML =
-                "<p>Unable to search for this location. Please try again.</p>";
+                "<p>Unable to search for this location.</p>";
 
         });
 
 }
 
 
-// =================================================
-// HTML ESCAPING
-// =================================================
-
-function escapeHtml(value) {
-
-    return String(value)
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}
-
-
-// =================================================
-// SEARCH BUTTON
-// =================================================
-
 searchButton.addEventListener(
     "click",
     searchRegion
 );
 
-
-// =================================================
-// ENTER KEY
-// =================================================
 
 searchInput.addEventListener(
     "keydown",
@@ -801,6 +955,631 @@ searchInput.addEventListener(
 );
 
 
+
+// =================================================
+// REMOVE PREVIOUS DYNAMIC LAYERS
+// =================================================
+
+function clearDynamicLayers() {
+
+    dynamicLayerControlEntries.forEach(
+        function(entry) {
+
+            layerControl.removeLayer(
+                entry.layer
+            );
+
+            if (
+                map.hasLayer(
+                    entry.layer
+                )
+            ) {
+
+                map.removeLayer(
+                    entry.layer
+                );
+
+            }
+
+        }
+    );
+
+
+    dynamicLayerControlEntries =
+        [];
+
+    dynamicLayers =
+        {};
+
+
+    detectionLayerGroup.clearLayers();
+
+}
+
+
+
+// =================================================
+// RUN DYNAMIC ANALYSIS
+// =================================================
+
+function runAnalysis() {
+
+    const baselineYear =
+        Number(
+            baselineSelect.value
+        );
+
+
+    const currentYear =
+        Number(
+            currentSelect.value
+        );
+
+
+    if (
+        baselineYear >= currentYear
+    ) {
+
+        analysisMessage.textContent =
+            "Baseline year must be earlier than current year.";
+
+        return;
+
+    }
+
+
+    runButton.disabled =
+        true;
+
+
+    runButton.textContent =
+        "Analyzing...";
+
+
+    analysisMessage.textContent =
+        `Finding the best January Sentinel-2 scenes for ${baselineYear} and ${currentYear}...`;
+
+
+    clearDynamicLayers();
+
+
+    fetch(
+        "/api/run-analysis",
+        {
+
+            method:
+                "POST",
+
+            headers:
+                {
+                    "Content-Type":
+                        "application/json"
+                },
+
+            body:
+                JSON.stringify({
+
+                    baseline_year:
+                        baselineYear,
+
+                    current_year:
+                        currentYear
+
+                })
+
+        }
+    )
+
+
+        .then(response => {
+
+            return response.json()
+                .then(data => {
+
+                    if (
+                        !response.ok
+                    ) {
+
+                        throw new Error(
+                            data.error ||
+                            `Server error: ${response.status}`
+                        );
+
+                    }
+
+                    return data;
+
+                });
+
+        })
+
+
+        .then(data => {
+
+            updateDashboard(
+                data
+            );
+
+
+            updateMap(
+                data
+            );
+
+
+            analysisMessage.textContent =
+                `Analysis completed: ${baselineYear} → ${currentYear}`;
+
+        })
+
+
+        .catch(error => {
+
+            console.error(
+                "Analysis error:",
+                error
+            );
+
+
+            analysisMessage.textContent =
+                error.message;
+
+
+            document.getElementById(
+                "map-status"
+            ).textContent =
+                "Unable to complete selected-year analysis.";
+
+        })
+
+
+        .finally(() => {
+
+            runButton.disabled =
+                false;
+
+            runButton.textContent =
+                "Run Analysis";
+
+        });
+
+}
+
+
+runButton.addEventListener(
+    "click",
+    runAnalysis
+);
+
+
+
+// =================================================
+// UPDATE DASHBOARD
+// =================================================
+
+function updateDashboard(
+    data
+) {
+
+    const statistics =
+        data.statistics;
+
+
+    document.getElementById(
+        "baseline"
+    ).textContent =
+        data.comparison.baseline_year;
+
+
+    document.getElementById(
+        "current"
+    ).textContent =
+        data.comparison.current_year;
+
+
+    document.getElementById(
+        "mean-change"
+    ).textContent =
+        statistics.mean_ndvi_change
+            .toFixed(4);
+
+
+    document.getElementById(
+        "loss-share"
+    ).textContent =
+        statistics.potential_loss_share
+            .toFixed(2)
+        + "%";
+
+
+    document.getElementById(
+        "loss-pixels"
+    ).textContent =
+        statistics.potential_loss_pixels
+            .toLocaleString();
+
+
+    document.getElementById(
+        "valid-pixels"
+    ).textContent =
+        statistics.valid_pixels
+            .toLocaleString();
+
+
+    document.getElementById(
+        "region-count"
+    ).textContent =
+        statistics.detected_regions;
+
+
+    document.getElementById(
+        "threshold"
+    ).textContent =
+        data.threshold.toFixed(2);
+
+
+    document.getElementById(
+        "threshold-text"
+    ).textContent =
+        data.threshold.toFixed(2);
+
+
+    document.getElementById(
+        "baseline-scene"
+    ).textContent =
+        data.baseline_scene.item_id;
+
+
+    document.getElementById(
+        "current-scene"
+    ).textContent =
+        data.current_scene.item_id;
+
+
+    document.getElementById(
+        "baseline-cloud"
+    ).textContent =
+        formatCloudCover(
+            data.baseline_scene.cloud_cover
+        );
+
+
+    document.getElementById(
+        "current-cloud"
+    ).textContent =
+        formatCloudCover(
+            data.current_scene.cloud_cover
+        );
+
+
+    document.getElementById(
+        "status"
+    ).textContent =
+        `${statistics.potential_loss_pixels} pixels were flagged as potential vegetation loss after cloud/shadow masking.`;
+
+}
+
+
+function formatCloudCover(
+    value
+) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+
+        return "N/A";
+
+    }
+
+
+    return (
+        Number(value)
+        .toFixed(2)
+        + "%"
+    );
+
+}
+
+
+
+// =================================================
+// UPDATE MAP
+// =================================================
+
+function updateMap(
+    data
+) {
+
+    clearDynamicLayers();
+
+
+    const bounds =
+        data.bounds;
+
+
+    analysisBounds =
+        L.latLngBounds(
+            bounds
+        );
+
+
+    // ---------------------------------------------
+    // NDVI baseline layer
+    // ---------------------------------------------
+
+    const baselineLayer =
+        L.imageOverlay(
+
+            data.layers
+                .ndvi_baseline
+                .url,
+
+            data.layers
+                .ndvi_baseline
+                .bounds,
+
+            {
+                opacity:
+                    0.65,
+
+                interactive:
+                    false
+            }
+
+        );
+
+
+    layerControl.addOverlay(
+        baselineLayer,
+        data.layers
+            .ndvi_baseline
+            .label
+    );
+
+
+    dynamicLayerControlEntries.push({
+
+        layer:
+            baselineLayer,
+
+        name:
+            data.layers
+                .ndvi_baseline
+                .label
+
+    });
+
+
+    dynamicLayers.baseline =
+        baselineLayer;
+
+
+
+    // ---------------------------------------------
+    // NDVI current layer
+    // ---------------------------------------------
+
+    const currentLayer =
+        L.imageOverlay(
+
+            data.layers
+                .ndvi_current
+                .url,
+
+            data.layers
+                .ndvi_current
+                .bounds,
+
+            {
+                opacity:
+                    0.65,
+
+                interactive:
+                    false
+            }
+
+        );
+
+
+    layerControl.addOverlay(
+        currentLayer,
+        data.layers
+            .ndvi_current
+            .label
+    );
+
+
+    dynamicLayerControlEntries.push({
+
+        layer:
+            currentLayer,
+
+        name:
+            data.layers
+                .ndvi_current
+                .label
+
+    });
+
+
+    dynamicLayers.current =
+        currentLayer;
+
+
+
+    // ---------------------------------------------
+    // NDVI change layer
+    // ---------------------------------------------
+
+    const changeLayer =
+        L.imageOverlay(
+
+            data.layers
+                .ndvi_change
+                .url,
+
+            data.layers
+                .ndvi_change
+                .bounds,
+
+            {
+                opacity:
+                    0.75,
+
+                interactive:
+                    false
+            }
+
+        );
+
+
+    layerControl.addOverlay(
+        changeLayer,
+        data.layers
+            .ndvi_change
+            .label
+    );
+
+
+    dynamicLayerControlEntries.push({
+
+        layer:
+            changeLayer,
+
+        name:
+            data.layers
+                .ndvi_change
+                .label
+
+    });
+
+
+    dynamicLayers.change =
+        changeLayer;
+
+
+
+    // ---------------------------------------------
+    // Potential-loss GeoJSON
+    // ---------------------------------------------
+
+    fetch(
+        data.layers
+            .potential_loss
+            .url
+    )
+
+        .then(
+            response =>
+                response.json()
+        )
+
+        .then(
+            geojson => {
+
+                const lossLayer =
+                    L.geoJSON(
+                        geojson,
+                        {
+
+                            style: {
+
+                                weight: 2,
+
+                                fillOpacity:
+                                    0.65
+
+                            },
+
+
+                            onEachFeature:
+                            function(
+                                feature,
+                                layer
+                            ) {
+
+                                const properties =
+                                    feature.properties;
+
+
+                                layer.bindPopup(
+
+                                    `<strong>
+                                        Potential vegetation loss
+                                    </strong>
+                                    <br>
+                                    Method:
+                                    Cloud-masked NDVI change
+                                    <br>
+                                    Threshold:
+                                    ${properties.threshold}`
+
+                                );
+
+                            }
+
+                        }
+                    );
+
+
+                detectionLayerGroup.addLayer(
+                    lossLayer
+                );
+
+
+                if (
+                    map.hasLayer(
+                        detectionLayerGroup
+                    )
+                ) {
+
+                    detectionLayerGroup.bringToFront();
+
+                }
+
+
+                document.getElementById(
+                    "region-count"
+                ).textContent =
+                    geojson.features.length;
+
+
+                document.getElementById(
+                    "map-status"
+                ).textContent =
+                    `${geojson.features.length} detected regions available for the selected year comparison.`;
+
+            }
+        );
+
+
+    // ---------------------------------------------
+    // Fit map to analysis area
+    // ---------------------------------------------
+
+    if (
+        analysisBounds &&
+        analysisBounds.isValid()
+    ) {
+
+        map.fitBounds(
+            analysisBounds,
+            {
+                padding:
+                    [
+                        20,
+                        20
+                    ]
+            }
+        );
+
+    }
+
+}
+
+
+
 // =================================================
 // RESET VIEW
 // =================================================
@@ -813,7 +1592,9 @@ document
         "click",
         function() {
 
-            if (searchMarker) {
+            if (
+                searchMarker
+            ) {
 
                 map.removeLayer(
                     searchMarker
@@ -837,37 +1618,12 @@ document
                 map.fitBounds(
                     analysisBounds,
                     {
-                        padding: [
-                            30,
-                            30
-                        ]
+                        padding:
+                            [
+                                20,
+                                20
+                            ]
                     }
-                );
-
-            }
-
-            else if (
-                originalDetectionBounds &&
-                originalDetectionBounds.isValid()
-            ) {
-
-                map.fitBounds(
-                    originalDetectionBounds,
-                    {
-                        padding: [
-                            30,
-                            30
-                        ]
-                    }
-                );
-
-            }
-
-            else {
-
-                map.setView(
-                    defaultCenter,
-                    defaultZoom
                 );
 
             }
@@ -876,356 +1632,15 @@ document
     );
 
 
-// =================================================
-// LOAD ANALYSIS
-// =================================================
-
-fetch(
-    "/api/analysis"
-)
-
-    .then(response => {
-
-        if (!response.ok) {
-
-            throw new Error(
-                `Analysis API returned ${response.status}`
-            );
-
-        }
-
-        return response.json();
-
-    })
-
-    .then(data => {
-
-        const stats =
-            data.statistics;
-
-
-        document.getElementById(
-            "baseline"
-        ).textContent =
-            data.comparison.baseline_year;
-
-
-        document.getElementById(
-            "current"
-        ).textContent =
-            data.comparison.current_year;
-
-
-        document.getElementById(
-            "mean-change"
-        ).textContent =
-            stats.mean_ndvi_change.toFixed(4);
-
-
-        document.getElementById(
-            "loss-share"
-        ).textContent =
-            stats.potential_loss_share.toFixed(2)
-            + "%";
-
-
-        document.getElementById(
-            "loss-pixels"
-        ).textContent =
-            stats.potential_loss_pixels
-                .toLocaleString();
-
-
-        document.getElementById(
-            "valid-pixels"
-        ).textContent =
-            stats.valid_pixels
-                .toLocaleString();
-
-
-        document.getElementById(
-            "threshold"
-        ).textContent =
-            data.threshold.toFixed(2);
-
-
-        document.getElementById(
-            "threshold-text"
-        ).textContent =
-            data.threshold.toFixed(2);
-
-
-        document.getElementById(
-            "status"
-        ).textContent =
-            `${stats.potential_loss_pixels} pixels were flagged as potential vegetation loss after cloud/shadow masking.`;
-
-    })
-
-    .catch(error => {
-
-        console.error(
-            "Analysis error:",
-            error
-        );
-
-
-        document.getElementById(
-            "status"
-        ).textContent =
-            "Unable to load satellite analysis.";
-
-    });
-
 
 // =================================================
-// LOAD DETECTION GEOJSON
+// INITIAL ANALYSIS
 // =================================================
 
-fetch(
-    "/api/deforestation"
-)
+// Automatically load the verified
+// 2025 → 2026 comparison.
 
-    .then(response => {
-
-        if (!response.ok) {
-
-            throw new Error(
-                `Deforestation API returned ${response.status}`
-            );
-
-        }
-
-        return response.json();
-
-    })
-
-    .then(data => {
-
-        document.getElementById(
-            "region-count"
-        ).textContent =
-            data.features.length;
-
-
-        detectionLayer =
-            L.geoJSON(
-                data,
-                {
-
-                    style: {
-
-                        weight: 2,
-
-                        fillOpacity: 0.65
-
-                    },
-
-
-                    onEachFeature:
-                    function(
-                        feature,
-                        layer
-                    ) {
-
-                        const properties =
-                            feature.properties;
-
-
-                        layer.bindPopup(
-
-                            `<strong>
-                                Potential vegetation loss
-                            </strong>
-                            <br>
-                            Detection method:
-                            Cloud-masked NDVI change
-                            <br>
-                            Threshold:
-                            ${properties.threshold}`
-
-                        );
-
-                    }
-
-                }
-            );
-
-
-        detectionLayerGroup.addLayer(
-            detectionLayer
-        );
-
-
-        originalDetectionBounds =
-            detectionLayer.getBounds();
-
-
-        if (
-            originalDetectionBounds.isValid()
-        ) {
-
-            map.fitBounds(
-                originalDetectionBounds,
-                {
-                    padding: [
-                        30,
-                        30
-                    ]
-                }
-            );
-
-        }
-
-
-        document.getElementById(
-            "map-status"
-        ).textContent =
-            `${data.features.length} detected regions available on the map.`;
-
-    })
-
-    .catch(error => {
-
-        console.error(
-            "GeoJSON error:",
-            error
-        );
-
-
-        document.getElementById(
-            "map-status"
-        ).textContent =
-            "Unable to load detected regions.";
-
-    });
-
-
-// =================================================
-// LOAD NDVI VISUALIZATION LAYERS
-// =================================================
-
-fetch(
-    "/api/visuals"
-)
-
-    .then(response => {
-
-        if (!response.ok) {
-
-            throw new Error(
-                `Visual API returned ${response.status}`
-            );
-
-        }
-
-        return response.json();
-
-    })
-
-    .then(data => {
-
-        const layerDefinitions = [
-
-            {
-                key: "ndvi_2025",
-                label: "NDVI 2025",
-                opacity: 0.65
-            },
-
-            {
-                key: "ndvi_2026",
-                label: "NDVI 2026",
-                opacity: 0.65
-            },
-
-            {
-                key: "ndvi_change",
-                label: "NDVI Change",
-                opacity: 0.75
-            }
-
-        ];
-
-
-        let firstBounds = null;
-
-
-        layerDefinitions.forEach(
-            function(definition) {
-
-                const metadata =
-                    data[definition.key];
-
-
-                if (!metadata) {
-                    return;
-                }
-
-
-                const overlay =
-                    L.imageOverlay(
-                        metadata.url,
-                        metadata.bounds,
-                        {
-                            opacity:
-                                definition.opacity,
-
-                            interactive:
-                                false
-                        }
-                    );
-
-
-                layerControl.addOverlay(
-                    overlay,
-                    definition.label
-                );
-
-
-                if (!firstBounds) {
-
-                    firstBounds =
-                        L.latLngBounds(
-                            metadata.bounds
-                        );
-
-                }
-
-            }
-        );
-
-
-        if (
-            firstBounds &&
-            firstBounds.isValid()
-        ) {
-
-            analysisBounds =
-                firstBounds;
-
-            map.fitBounds(
-                analysisBounds,
-                {
-                    padding: [
-                        20,
-                        20
-                    ]
-                }
-            );
-
-        }
-
-    })
-
-    .catch(error => {
-
-        console.error(
-            "Visualization error:",
-            error
-        );
-
-    });
+runAnalysis();
 
 
 </script>
