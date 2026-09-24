@@ -43,7 +43,7 @@ header p {
 
 
 /* =================================================
-   SEARCH SECTION
+   SEARCH
 ================================================= */
 
 .search-section {
@@ -72,7 +72,9 @@ header p {
 
 .search-box input:focus {
     border-color: #6b7280;
-    box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.12);
+    box-shadow:
+        0 0 0 2px
+        rgba(107, 114, 128, 0.12);
 }
 
 .search-box input::placeholder {
@@ -99,7 +101,9 @@ header p {
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.08);
 }
 
 .search-results p {
@@ -150,7 +154,9 @@ header p {
     border-radius: 8px;
     font-size: 14px;
     line-height: 1.5;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.05);
 }
 
 .selected-region strong {
@@ -163,14 +169,15 @@ header p {
 
 
 /* =================================================
-   DASHBOARD CARDS
+   DASHBOARD
 ================================================= */
 
 .dashboard {
     max-width: 1400px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns:
+        repeat(4, 1fr);
     gap: 16px;
     padding: 0 20px 20px;
 }
@@ -180,7 +187,9 @@ header p {
     padding: 20px;
     border-radius: 12px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.08);
 }
 
 .card h3 {
@@ -206,7 +215,8 @@ header p {
     max-width: 1400px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns:
+        repeat(4, 1fr);
     gap: 16px;
     padding: 0 20px 20px;
 }
@@ -216,7 +226,9 @@ header p {
     padding: 16px;
     border-radius: 12px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.06);
 }
 
 .summary-item strong {
@@ -234,7 +246,7 @@ header p {
 
 
 /* =================================================
-   MAP SECTION
+   MAP
 ================================================= */
 
 .map-section {
@@ -284,22 +296,33 @@ header p {
     border-radius: 12px;
     overflow: hidden;
     background: #d1d5db;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.08);
 }
 
 
 /* =================================================
-   LEAFLET POPUP
+   LEAFLET
 ================================================= */
 
-.leaflet-popup-content {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 13px;
-    line-height: 1.5;
+.leaflet-control-layers {
+    border-radius: 8px !important;
 }
 
-.leaflet-popup-content strong {
-    color: #111827;
+.leaflet-control-zoom {
+    border-radius: 8px !important;
+    overflow: hidden;
+}
+
+.leaflet-popup-content {
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 
@@ -310,10 +333,12 @@ header p {
 .legend {
     display: inline-block;
     margin-top: 10px;
-    padding: 12px 14px;
+    padding: 14px;
     background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.06);
 }
 
 .legend-title {
@@ -321,6 +346,46 @@ header p {
     font-size: 14px;
     font-weight: 700;
     color: #111827;
+}
+
+.change-title,
+.detection-title {
+    margin-top: 14px;
+}
+
+.ndvi-gradient {
+    width: 240px;
+    height: 18px;
+    border-radius: 4px;
+    background:
+        linear-gradient(
+            to right,
+            rgb(165, 42, 42),
+            rgb(240, 200, 60),
+            rgb(34, 139, 34)
+        );
+}
+
+.change-gradient {
+    width: 240px;
+    height: 18px;
+    border-radius: 4px;
+    background:
+        linear-gradient(
+            to right,
+            rgb(220, 80, 80),
+            rgb(255, 255, 255),
+            rgb(80, 255, 80)
+        );
+}
+
+.gradient-labels {
+    width: 240px;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 11px;
+    color: #6b7280;
 }
 
 .legend-row {
@@ -336,13 +401,14 @@ header p {
     width: 18px;
     height: 18px;
     border: 2px solid #333333;
-    background: rgba(255, 0, 0, 0.45);
+    background:
+        rgba(255, 0, 0, 0.45);
     border-radius: 3px;
 }
 
 
 /* =================================================
-   INFORMATION SECTION
+   INFORMATION
 ================================================= */
 
 .info {
@@ -351,7 +417,9 @@ header p {
     padding: 20px;
     background: white;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.06);
 }
 
 .info h2 {
@@ -377,31 +445,19 @@ header p {
 
 
 /* =================================================
-   LEAFLET CONTROLS
-================================================= */
-
-.leaflet-control-layers {
-    border-radius: 8px !important;
-}
-
-.leaflet-control-zoom {
-    border-radius: 8px !important;
-    overflow: hidden;
-}
-
-
-/* =================================================
    TABLET
 ================================================= */
 
 @media (max-width: 1000px) {
 
     .dashboard {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns:
+            repeat(2, 1fr);
     }
 
     .summary {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns:
+            repeat(2, 1fr);
     }
 
 }
@@ -464,6 +520,13 @@ header p {
     .info {
         margin: 0 15px 15px;
         padding: 16px;
+    }
+
+    .ndvi-gradient,
+    .change-gradient,
+    .gradient-labels {
+        width: 100%;
+        max-width: 240px;
     }
 
 }
