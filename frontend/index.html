@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Forest Monitor AI</title>
+
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""
+    />
+
+    <!-- Our CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>🌳 Forest Monitor AI</h1>
+        <p>Satellite-based forest disturbance monitoring</p>
+    </header>
+
+    <main>
+        <section class="search-section">
+            <label for="region">Select Region</label>
+            <input
+                type="text"
+                id="region"
+                placeholder="Enter a region..."
+            >
+            <button id="searchBtn">Search</button>
+        </section>
+
+        <section class="dashboard">
+            <div class="card">
+                <h3>Forest Area</h3>
+                <p id="forestArea">--</p>
+            </div>
+
+            <div class="card">
+                <h3>Recent Alerts</h3>
+                <p id="alertCount">--</p>
+            </div>
+
+            <div class="card">
+                <h3>Affected Area</h3>
+                <p id="affectedArea">--</p>
+            </div>
+
+            <div class="card">
+                <h3>Carbon Impact</h3>
+                <p id="carbonImpact">--</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Forest Monitoring Map</h2>
+            <div id="map"></div>
+        </section>
+    </main>
+
+    <!-- Leaflet JavaScript -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
+
+    <!-- Our JavaScript -->
+    <script src="script.js"></script>
+
+</body>
+</html>
