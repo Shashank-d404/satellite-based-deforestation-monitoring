@@ -30,6 +30,10 @@
 <body>
 
 
+<!-- =================================================
+     HEADER
+================================================== -->
+
 <header>
 
     <div class="header-content">
@@ -145,6 +149,24 @@
             type="button"
         >
             Run Analysis
+        </button>
+
+
+        <button
+            id="export-report"
+            type="button"
+            disabled
+        >
+            Export Report
+        </button>
+
+
+        <button
+            id="export-geojson"
+            type="button"
+            disabled
+        >
+            Export GeoJSON
         </button>
 
     </div>
@@ -286,7 +308,7 @@
 
 
 <!-- =================================================
-     SATELLITE METADATA
+     SATELLITE INFORMATION
 ================================================== -->
 
 <section class="scene-info">
@@ -446,7 +468,7 @@
 
 
 <!-- =================================================
-     ANALYSIS INFORMATION
+     INFORMATION
 ================================================== -->
 
 <section class="info">
@@ -508,7 +530,7 @@
 
 const MIN_YEAR = 2016;
 
-const MAX_YEAR = new Date().getFullYear();
+const MAX_YEAR = 2026;
 
 
 const baselineSelect =
@@ -526,6 +548,18 @@ const currentSelect =
 const runButton =
     document.getElementById(
         "run-analysis"
+    );
+
+
+const exportReportButton =
+    document.getElementById(
+        "export-report"
+    );
+
+
+const exportGeoJSONButton =
+    document.getElementById(
+        "export-geojson"
     );
 
 
@@ -581,9 +615,11 @@ function populateYears() {
     }
 
 
-    baselineSelect.value = "2025";
+    baselineSelect.value =
+        "2025";
 
-    currentSelect.value = "2026";
+    currentSelect.value =
+        "2026";
 
 }
 
@@ -640,13 +676,14 @@ const layerControl =
     ).addTo(map);
 
 
-let dynamicLayers = {};
+let dynamicLayerControlEntries =
+    [];
 
-let dynamicLayerControlEntries = [];
+let analysisBounds =
+    null;
 
-let analysisBounds = null;
-
-let searchMarker = null;
+let searchMarker =
+    null;
 
 
 
@@ -730,6 +767,10 @@ function searchRegion() {
         "<p>Searching...</p>";
 
 
+    selectedRegion.innerHTML =
+        "";
+
+
     fetch(
         `/api/geocode?q=${encodeURIComponent(query)}`
     )
@@ -747,7 +788,6 @@ function searchRegion() {
             return response.json();
 
         })
-
 
         .then(data => {
 
@@ -921,6 +961,7 @@ function searchRegion() {
         .catch(error => {
 
             console.error(
+                "Search error:",
                 error
             );
 
@@ -957,7 +998,7 @@ searchInput.addEventListener(
 
 
 // =================================================
-// REMOVE PREVIOUS DYNAMIC LAYERS
+// CLEAR DYNAMIC MAP LAYERS
 // =================================================
 
 function clearDynamicLayers() {
@@ -968,6 +1009,7 @@ function clearDynamicLayers() {
             layerControl.removeLayer(
                 entry.layer
             );
+
 
             if (
                 map.hasLayer(
@@ -988,9 +1030,6 @@ function clearDynamicLayers() {
     dynamicLayerControlEntries =
         [];
 
-    dynamicLayers =
-        {};
-
 
     detectionLayerGroup.clearLayers();
 
@@ -999,7 +1038,7 @@ function clearDynamicLayers() {
 
 
 // =================================================
-// RUN DYNAMIC ANALYSIS
+// RUN ANALYSIS
 // =================================================
 
 function runAnalysis() {
@@ -1031,13 +1070,19 @@ function runAnalysis() {
     runButton.disabled =
         true;
 
+    exportReportButton.disabled =
+        true;
+
+    exportGeoJSONButton.disabled =
+        true;
+
 
     runButton.textContent =
         "Analyzing...";
 
 
     analysisMessage.textContent =
-        `Finding the best January Sentinel-2 scenes for ${baselineYear} and ${currentYear}...`;
+        `Finding Sentinel-2 scenes for ${baselineYear} and ${currentYear}...`;
 
 
     clearDynamicLayers();
@@ -1106,6 +1151,13 @@ function runAnalysis() {
             );
 
 
+            exportReportButton.disabled =
+                false;
+
+            exportGeoJSONButton.disabled =
+                false;
+
+
             analysisMessage.textContent =
                 `Analysis completed: ${baselineYear} → ${currentYear}`;
 
@@ -1148,6 +1200,238 @@ function runAnalysis() {
 runButton.addEventListener(
     "click",
     runAnalysis
+);
+
+
+
+// =================================================
+// DOWNLOAD HELPER
+// =================================================
+
+async function downloadFile(
+    url,
+    defaultFilename
+) {
+
+    const response =
+        await fetch(url);
+
+
+    if (!response.ok) {
+
+        let message =
+            "Export failed.";
+
+        try {
+
+            const data =
+                await response.json();
+
+            if (
+                data.error
+            ) {
+
+                message =
+                    data.error;
+
+            }
+
+        } catch (
+            error
+        ) {
+
+            // Keep default message.
+        }
+
+
+        throw new Error(
+            message
+        );
+
+    }
+
+
+    const blob =
+        await response.blob();
+
+
+    const downloadUrl =
+        URL.createObjectURL(
+            blob
+        );
+
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+
+    link.href =
+        downloadUrl;
+
+
+    link.download =
+        defaultFilename;
+
+
+    document.body.appendChild(
+        link
+    );
+
+
+    link.click();
+
+
+    link.remove();
+
+
+    URL.revokeObjectURL(
+        downloadUrl
+    );
+
+}
+
+
+
+// =================================================
+// EXPORT REPORT
+// =================================================
+
+exportReportButton.addEventListener(
+    "click",
+    async function() {
+
+        const baselineYear =
+            baselineSelect.value;
+
+        const currentYear =
+            currentSelect.value;
+
+
+        const filename =
+            `forest_monitor_${baselineYear}_${currentYear}.txt`;
+
+
+        try {
+
+            exportReportButton.disabled =
+                true;
+
+            exportReportButton.textContent =
+                "Exporting...";
+
+
+            await downloadFile(
+
+                `/api/export/report?baseline_year=${baselineYear}&current_year=${currentYear}`,
+
+                filename
+
+            );
+
+
+            analysisMessage.textContent =
+                "Analysis report downloaded.";
+
+        }
+
+        catch (
+            error
+        ) {
+
+            console.error(
+                error
+            );
+
+
+            analysisMessage.textContent =
+                error.message;
+
+        }
+
+        finally {
+
+            exportReportButton.disabled =
+                false;
+
+            exportReportButton.textContent =
+                "Export Report";
+
+        }
+
+    }
+);
+
+
+
+// =================================================
+// EXPORT GEOJSON
+// =================================================
+
+exportGeoJSONButton.addEventListener(
+    "click",
+    async function() {
+
+        const baselineYear =
+            baselineSelect.value;
+
+        const currentYear =
+            currentSelect.value;
+
+
+        const filename =
+            `potential_loss_${baselineYear}_${currentYear}.geojson`;
+
+
+        try {
+
+            exportGeoJSONButton.disabled =
+                true;
+
+            exportGeoJSONButton.textContent =
+                "Exporting...";
+
+
+            await downloadFile(
+
+                `/api/export/geojson?baseline_year=${baselineYear}&current_year=${currentYear}`,
+
+                filename
+
+            );
+
+
+            analysisMessage.textContent =
+                "Potential-loss GeoJSON downloaded.";
+
+        }
+
+        catch (
+            error
+        ) {
+
+            console.error(
+                error
+            );
+
+
+            analysisMessage.textContent =
+                error.message;
+
+        }
+
+        finally {
+
+            exportGeoJSONButton.disabled =
+                false;
+
+            exportGeoJSONButton.textContent =
+                "Export GeoJSON";
+
+        }
+
+    }
 );
 
 
@@ -1294,18 +1578,14 @@ function updateMap(
     clearDynamicLayers();
 
 
-    const bounds =
-        data.bounds;
-
-
     analysisBounds =
         L.latLngBounds(
-            bounds
+            data.bounds
         );
 
 
     // ---------------------------------------------
-    // NDVI baseline layer
+    // Baseline NDVI
     // ---------------------------------------------
 
     const baselineLayer =
@@ -1351,13 +1631,9 @@ function updateMap(
     });
 
 
-    dynamicLayers.baseline =
-        baselineLayer;
-
-
 
     // ---------------------------------------------
-    // NDVI current layer
+    // Current NDVI
     // ---------------------------------------------
 
     const currentLayer =
@@ -1403,13 +1679,9 @@ function updateMap(
     });
 
 
-    dynamicLayers.current =
-        currentLayer;
-
-
 
     // ---------------------------------------------
-    // NDVI change layer
+    // NDVI Change
     // ---------------------------------------------
 
     const changeLayer =
@@ -1455,10 +1727,6 @@ function updateMap(
     });
 
 
-    dynamicLayers.change =
-        changeLayer;
-
-
 
     // ---------------------------------------------
     // Potential-loss GeoJSON
@@ -1485,7 +1753,8 @@ function updateMap(
 
                             style: {
 
-                                weight: 2,
+                                weight:
+                                    2,
 
                                 fillOpacity:
                                     0.65
@@ -1554,10 +1823,6 @@ function updateMap(
         );
 
 
-    // ---------------------------------------------
-    // Fit map to analysis area
-    // ---------------------------------------------
-
     if (
         analysisBounds &&
         analysisBounds.isValid()
@@ -1581,7 +1846,7 @@ function updateMap(
 
 
 // =================================================
-// RESET VIEW
+// RESET MAP
 // =================================================
 
 document
@@ -1636,9 +1901,6 @@ document
 // =================================================
 // INITIAL ANALYSIS
 // =================================================
-
-// Automatically load the verified
-// 2025 → 2026 comparison.
 
 runAnalysis();
 

@@ -99,11 +99,6 @@ header p {
     background: #374151;
 }
 
-.search-box button:disabled {
-    opacity: 0.65;
-    cursor: wait;
-}
-
 .search-results {
     margin-top: 8px;
     background: white;
@@ -204,7 +199,8 @@ header p {
 .year-controls {
     display: flex;
     align-items: end;
-    gap: 14px;
+    flex-wrap: wrap;
+    gap: 12px;
     padding: 18px;
     background: white;
     border-radius: 12px;
@@ -226,7 +222,7 @@ header p {
 }
 
 .year-field select {
-    min-width: 130px;
+    min-width: 120px;
     padding: 11px 12px;
     border: 1px solid #d1d5db;
     border-radius: 7px;
@@ -242,29 +238,36 @@ header p {
     color: #6b7280;
 }
 
-#run-analysis {
-    padding: 11px 20px;
+#run-analysis,
+#export-report,
+#export-geojson {
+    padding: 11px 16px;
     border: none;
     border-radius: 7px;
     background: #1f2937;
     color: white;
     font-size: 14px;
     cursor: pointer;
+    white-space: nowrap;
 }
 
-#run-analysis:hover {
+#run-analysis:hover,
+#export-report:hover,
+#export-geojson:hover {
     background: #374151;
 }
 
-#run-analysis:disabled {
-    opacity: 0.65;
-    cursor: wait;
+#run-analysis:disabled,
+#export-report:disabled,
+#export-geojson:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .analysis-message {
     margin: 10px 0 0;
-    padding: 0 4px;
     min-height: 20px;
+    padding: 0 4px;
     font-size: 13px;
     color: #6b7280;
 }
@@ -643,7 +646,9 @@ header p {
         display: none;
     }
 
-    #run-analysis {
+    #run-analysis,
+    #export-report,
+    #export-geojson {
         width: 100%;
     }
 
@@ -653,16 +658,8 @@ header p {
         grid-template-columns: 1fr;
     }
 
-    .dashboard {
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-
-    .summary {
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-
+    .dashboard,
+    .summary,
     .scene-info {
         padding-left: 15px;
         padding-right: 15px;
@@ -688,8 +685,8 @@ header p {
     .ndvi-gradient,
     .change-gradient,
     .gradient-labels {
-        max-width: 240px;
         width: 100%;
+        max-width: 240px;
     }
 
 }
