@@ -1,1913 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        Forest Monitor
-    </title>
-
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="/style.css"
-    >
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Forest Monitor — satellite-based deforestation monitoring, vegetation change analysis, community reporting and environmental collaboration.">
+  <meta name="theme-color" content="#071713">
+  <title>Forest Monitor — Satellite-Based Deforestation Monitoring</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="stylesheet" href="style.css">
 </head>
-
-
 <body>
-
-
-<!-- =================================================
-     HEADER
-================================================== -->
-
-<header>
-
-    <div class="header-content">
-
-        <h1>
-            🌳 Forest Monitor
-        </h1>
-
-        <p>
-            Satellite-Based Deforestation Monitoring
-        </p>
-
-    </div>
-
-</header>
-
-
-
-<!-- =================================================
-     REGION SEARCH
-================================================== -->
-
-<section class="search-section">
-
-    <div class="search-box">
-
-        <input
-            id="region-search"
-            type="text"
-            placeholder="Search any place, address, landmark, road, park, lake..."
-            autocomplete="off"
-        >
-
-        <button
-            id="search-button"
-            type="button"
-        >
-            Search
-        </button>
-
-    </div>
-
-
-    <div
-        id="search-results"
-        class="search-results"
-    ></div>
-
-
-    <div
-        id="selected-region"
-        class="selected-region"
-    ></div>
-
-</section>
-
-
-
-<!-- =================================================
-     YEAR SELECTION
-================================================== -->
-
-<section class="analysis-controls">
-
-    <div class="analysis-control-title">
-
-        <h2>
-            Satellite Comparison
-        </h2>
-
-        <p>
-            Compare the same study area across two selected years.
-        </p>
-
-    </div>
-
-
-    <div class="year-controls">
-
-        <div class="year-field">
-
-            <label for="baseline-year">
-                Baseline Year
-            </label>
-
-            <select
-                id="baseline-year"
-            ></select>
-
-        </div>
-
-
-        <div class="arrow">
-            →
-        </div>
-
-
-        <div class="year-field">
-
-            <label for="current-year">
-                Current Year
-            </label>
-
-            <select
-                id="current-year"
-            ></select>
-
-        </div>
-
-
-        <button
-            id="run-analysis"
-            type="button"
-        >
-            Run Analysis
-        </button>
-
-
-        <button
-            id="export-report"
-            type="button"
-            disabled
-        >
-            Export Report
-        </button>
-
-
-        <button
-            id="export-geojson"
-            type="button"
-            disabled
-        >
-            Export GeoJSON
-        </button>
-
-    </div>
-
-
-    <p
-        id="analysis-message"
-        class="analysis-message"
-    ></p>
-
-</section>
-
-
-
-<!-- =================================================
-     DASHBOARD
-================================================== -->
-
-<section class="dashboard">
-
-
-    <div class="card">
-
-        <h3>
-            Baseline Year
-        </h3>
-
-        <p id="baseline">
-            —
-        </p>
-
-    </div>
-
-
-    <div class="card">
-
-        <h3>
-            Current Year
-        </h3>
-
-        <p id="current">
-            —
-        </p>
-
-    </div>
-
-
-    <div class="card">
-
-        <h3>
-            Mean NDVI Change
-        </h3>
-
-        <p id="mean-change">
-            —
-        </p>
-
-    </div>
-
-
-    <div class="card">
-
-        <h3>
-            Potential Loss Share
-        </h3>
-
-        <p id="loss-share">
-            —
-        </p>
-
-    </div>
-
-
-</section>
-
-
-
-<!-- =================================================
-     SUMMARY
-================================================== -->
-
-<section class="summary">
-
-
-    <div class="summary-item">
-
-        <strong id="loss-pixels">
-            —
-        </strong>
-
-        <span>
-            Flagged Pixels
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <header class="site-header" id="top">
+    <div class="container nav-wrap">
+      <a class="brand" href="#home" aria-label="Forest Monitor home">
+        <span class="brand-mark"><i class="fa-solid fa-leaf"></i></span>
+        <span class="brand-copy">
+          <strong>Forest Monitor</strong>
+          <small>Satellite-Based Deforestation Monitoring</small>
         </span>
+      </a>
 
+      <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-label="Open navigation" aria-expanded="false">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <nav class="main-nav" id="mainNav" aria-label="Primary navigation">
+        <a href="#home" class="nav-link active">Home</a>
+        <a href="#analysis" class="nav-link">Analyze</a>
+        <a href="#community" class="nav-link">Community</a>
+        <a href="#report" class="nav-link">Report Issue</a>
+        <a href="#about" class="nav-link">About</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle theme"><i class="fa-solid fa-moon"></i></button>
+        <button class="btn btn-primary btn-small" id="headerStartBtn" type="button"><i class="fa-solid fa-satellite-dish"></i> Start Analysis</button>
+      </div>
     </div>
+  </header>
 
-
-    <div class="summary-item">
-
-        <strong id="valid-pixels">
-            —
-        </strong>
-
-        <span>
-            Valid Comparison Pixels
-        </span>
-
-    </div>
-
-
-    <div class="summary-item">
-
-        <strong id="region-count">
-            —
-        </strong>
-
-        <span>
-            Detected Regions
-        </span>
-
-    </div>
-
-
-    <div class="summary-item">
-
-        <strong id="threshold">
-            —
-        </strong>
-
-        <span>
-            NDVI Threshold
-        </span>
-
-    </div>
-
-
-</section>
-
-
-
-<!-- =================================================
-     SATELLITE INFORMATION
-================================================== -->
-
-<section class="scene-info">
-
-    <div>
-
-        <strong>
-            Baseline Scene
-        </strong>
-
-        <span id="baseline-scene">
-            —
-        </span>
-
-    </div>
-
-
-    <div>
-
-        <strong>
-            Baseline Cloud Cover
-        </strong>
-
-        <span id="baseline-cloud">
-            —
-        </span>
-
-    </div>
-
-
-    <div>
-
-        <strong>
-            Current Scene
-        </strong>
-
-        <span id="current-scene">
-            —
-        </span>
-
-    </div>
-
-
-    <div>
-
-        <strong>
-            Current Cloud Cover
-        </strong>
-
-        <span id="current-cloud">
-            —
-        </span>
-
-    </div>
-
-</section>
-
-
-
-<!-- =================================================
-     MAP
-================================================== -->
-
-<section class="map-section">
-
-
-    <div class="map-header">
-
-        <div>
-
-            <h2>
-                Satellite Analysis Map
-            </h2>
-
-            <p id="map-status">
-                Loading analysis...
-            </p>
-
+  <main>
+    <section class="hero section" id="home">
+      <div class="hero-grid container">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="status-dot"></span><span id="healthText">Checking monitoring service...</span></div>
+          <h1>See forest change <span>before it becomes invisible.</span></h1>
+          <p class="hero-lead">Compare Sentinel-2 observations, measure vegetation change, locate potential loss areas and turn environmental observations into structured community reports.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-large" id="heroAnalyzeBtn" type="button">Explore Forest Analysis <i class="fa-solid fa-arrow-right"></i></button>
+            <a class="btn btn-ghost btn-large" href="#how-it-works">See How It Works</a>
+          </div>
+          <div class="hero-proof">
+            <div class="proof-item"><span class="proof-icon"><i class="fa-solid fa-satellite"></i></span><div><strong>Sentinel-2</strong><small>Multispectral imagery</small></div></div>
+            <div class="proof-item"><span class="proof-icon"><i class="fa-solid fa-seedling"></i></span><div><strong>NDVI</strong><small>Vegetation health</small></div></div>
+            <div class="proof-item"><span class="proof-icon"><i class="fa-solid fa-map-location-dot"></i></span><div><strong>GeoJSON</strong><small>Actionable map layers</small></div></div>
+          </div>
         </div>
 
+        <div class="hero-visual">
+          <div class="orb orb-one"></div><div class="orb orb-two"></div>
+          <div class="hero-monitor-card">
+            <div class="monitor-topline">
+              <div><span class="mini-label">LIVE ANALYSIS PREVIEW</span><strong>Vegetation change monitor</strong></div>
+              <span class="live-badge"><span></span> READY</span>
+            </div>
+            <div class="comparison-visual">
+              <div class="compare-side"><img id="heroImageBaseline" src="/visuals/ndvi_2025.png" alt="2025 baseline NDVI visualization"><span class="compare-year">2025</span></div>
+              <div class="compare-divider"><span><i class="fa-solid fa-arrows-left-right"></i></span></div>
+              <div class="compare-side"><img id="heroImageCurrent" src="/visuals/ndvi_2026.png" alt="2026 current NDVI visualization"><span class="compare-year">2026</span></div>
+            </div>
+            <div class="monitor-bottom">
+              <div><span class="mini-label">SIGNAL</span><strong>Potential vegetation loss screening</strong></div>
+              <div class="mini-score"><span class="signal-bars"><i></i><i></i><i></i><i></i></span><strong>NDVI Δ</strong></div>
+            </div>
+          </div>
+          <div class="floating-stat floating-stat-a"><span class="floating-icon"><i class="fa-solid fa-cloud-sun"></i></span><div><small>Scene quality</small><strong id="heroCloudStat">Cloud-aware</strong></div></div>
+          <div class="floating-stat floating-stat-b"><span class="floating-icon"><i class="fa-solid fa-shield-halved"></i></span><div><small>Detection status</small><strong>Screening ready</strong></div></div>
+        </div>
+      </div>
 
-        <button
-            id="reset-view"
-            type="button"
-        >
-            Reset View
-        </button>
+      <div class="container hero-stats-grid">
+        <div class="hero-stat-card"><span class="stat-icon"><i class="fa-solid fa-calendar-days"></i></span><div><strong>2016–2026</strong><small>Comparison years available</small></div></div>
+        <div class="hero-stat-card"><span class="stat-icon"><i class="fa-solid fa-cloud"></i></span><div><strong>Cloud Masked</strong><small>Scene quality filtering</small></div></div>
+        <div class="hero-stat-card"><span class="stat-icon"><i class="fa-solid fa-bolt"></i></span><div><strong>On-demand</strong><small>Dynamic analysis generation</small></div></div>
+        <div class="hero-stat-card"><span class="stat-icon"><i class="fa-solid fa-file-export"></i></span><div><strong>GeoJSON + Report</strong><small>Analysis export workflow</small></div></div>
+      </div>
+    </section>
 
+    <section class="tech-strip">
+      <div class="container tech-strip-inner">
+        <span class="strip-label">Built around</span>
+        <span><i class="fa-solid fa-satellite"></i> Sentinel-2 L2A</span>
+        <span><i class="fa-solid fa-code"></i> Python + Flask</span>
+        <span><i class="fa-solid fa-layer-group"></i> Rasterio + NumPy</span>
+        <span><i class="fa-solid fa-map"></i> Leaflet + GeoJSON</span>
+        <span><i class="fa-solid fa-earth-asia"></i> OpenStreetMap</span>
+      </div>
+    </section>
+
+    <section class="section section-soft" id="analysis">
+      <div class="container">
+        <div class="section-heading-row">
+          <div><span class="section-kicker">FOREST INTELLIGENCE</span><h2>Analyze vegetation change with context.</h2><p>Choose a time range, find an area on the map and inspect NDVI change and potential loss screening.</p></div>
+          <div class="analysis-status" id="analysisStatus"><span class="status-dot"></span><span>Ready</span></div>
+        </div>
+
+        <div class="analysis-shell">
+          <div class="analysis-toolbar">
+            <div class="control-group"><label for="baselineYear">Baseline</label><div class="select-wrap"><i class="fa-regular fa-calendar"></i><select id="baselineYear"></select></div></div>
+            <div class="year-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+            <div class="control-group"><label for="currentYear">Current</label><div class="select-wrap"><i class="fa-regular fa-calendar-check"></i><select id="currentYear"></select></div></div>
+            <div class="control-group control-grow"><label for="locationSearch">Map Search</label><div class="search-control"><i class="fa-solid fa-magnifying-glass"></i><input id="locationSearch" type="search" autocomplete="off" placeholder="Search a city, locality, landmark or road..."><button id="searchLocationBtn" class="search-submit" type="button" aria-label="Search location"><i class="fa-solid fa-arrow-right"></i></button></div><div class="search-results" id="searchResults"></div></div>
+            <button class="btn btn-primary analyze-btn" id="runAnalysisBtn" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Run Analysis</button>
+          </div>
+
+          <div class="popular-row"><span>Try:</span><button class="chip location-chip" data-query="Bengaluru">Bengaluru</button><button class="chip location-chip" data-query="Amazon Rainforest">Amazon Rainforest</button><button class="chip location-chip" data-query="Western Ghats">Western Ghats</button><button class="chip location-chip" data-query="Congo Basin">Congo Basin</button><button class="chip location-chip" data-query="Borneo">Borneo</button></div>
+
+          <div class="analysis-grid">
+            <div class="map-panel">
+              <div class="map-head"><div><span class="map-label"><i class="fa-solid fa-location-dot"></i> Study view</span><strong id="mapLocationTitle">Satellite study tile · 43PEP</strong></div><button class="btn btn-ghost btn-small" id="resetMapBtn" type="button"><i class="fa-solid fa-compass"></i> Reset View</button></div>
+              <div id="map"></div>
+              <div class="map-overlay-note"><i class="fa-solid fa-circle-info"></i><span>Location search navigates the map. Current satellite comparison is generated for study tile <strong>43PEP</strong>.</span></div>
+            </div>
+
+            <aside class="insight-panel">
+              <div class="insight-card highlight-card">
+                <div class="insight-card-head"><div><span class="mini-label">ANALYSIS SUMMARY</span><h3 id="summaryPeriod">2025 → 2026</h3></div><span class="result-chip" id="resultChip">Pending</span></div>
+                <div class="metric-stack">
+                  <div class="metric-row"><div><span>Mean NDVI change</span><small>Common valid pixels</small></div><strong id="meanChange">—</strong></div>
+                  <div class="metric-row"><div><span>Potential loss pixels</span><small>Threshold-based screening</small></div><strong id="lossPixels">—</strong></div>
+                  <div class="metric-row"><div><span>Potential loss share</span><small>Of common valid pixels</small></div><strong id="lossShare">—</strong></div>
+                </div>
+              </div>
+
+              <div class="insight-card"><div class="insight-card-head compact"><div><span class="mini-label">SCENE QUALITY</span><h3>Selected scenes</h3></div><span class="quality-pill" id="qualityPill">—</span></div><div class="scene-list"><div class="scene-item"><span class="scene-icon"><i class="fa-solid fa-calendar"></i></span><div><small id="baselineSceneDate">Baseline scene</small><strong id="baselineSceneCloud">—</strong></div></div><div class="scene-item"><span class="scene-icon"><i class="fa-solid fa-calendar-check"></i></span><div><small id="currentSceneDate">Current scene</small><strong id="currentSceneCloud">—</strong></div></div></div></div>
+
+              <div class="insight-card"><div class="insight-card-head compact"><div><span class="mini-label">MAP LAYERS</span><h3>Visualization</h3></div></div><div class="layer-list">
+                <label class="layer-toggle"><span><i class="fa-solid fa-seedling"></i> Baseline NDVI</span><input type="checkbox" id="layerBaseline" checked><span class="switch"></span></label>
+                <label class="layer-toggle"><span><i class="fa-solid fa-leaf"></i> Current NDVI</span><input type="checkbox" id="layerCurrent" checked><span class="switch"></span></label>
+                <label class="layer-toggle"><span><i class="fa-solid fa-arrows-left-right-to-line"></i> NDVI Change</span><input type="checkbox" id="layerChange" checked><span class="switch"></span></label>
+                <label class="layer-toggle"><span><i class="fa-solid fa-triangle-exclamation"></i> Potential Loss</span><input type="checkbox" id="layerLoss" checked><span class="switch"></span></label>
+              </div></div>
+
+              <div class="insight-actions">
+                <a id="exportReportBtn" class="btn btn-primary btn-full disabled" href="#"> <i class="fa-solid fa-file-arrow-down"></i> Export Report</a>
+                <a id="exportGeojsonBtn" class="btn btn-outline btn-full disabled" href="#"><i class="fa-solid fa-draw-polygon"></i> Export GeoJSON</a>
+                <button class="btn btn-ghost btn-full" id="shareAnalysisBtn" type="button"><i class="fa-solid fa-share-nodes"></i> Share to Community</button>
+              </div>
+            </aside>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-card"><span class="result-icon icon-green"><i class="fa-solid fa-chart-line"></i></span><div><small>NDVI range</small><strong id="ndviRange">—</strong></div></div>
+            <div class="result-card"><span class="result-icon icon-blue"><i class="fa-solid fa-border-all"></i></span><div><small>Valid common pixels</small><strong id="validPixels">—</strong></div></div>
+            <div class="result-card"><span class="result-icon icon-amber"><i class="fa-solid fa-location-crosshairs"></i></span><div><small>Detected regions</small><strong id="detectedRegions">—</strong></div></div>
+            <div class="result-card"><span class="result-icon icon-red"><i class="fa-solid fa-arrow-trend-down"></i></span><div><small>Threshold</small><strong>-0.20</strong></div></div>
+          </div>
+
+          <div class="technical-note"><div class="note-icon"><i class="fa-solid fa-microscope"></i></div><div><strong>How to read this result</strong><p>“Potential loss” is a screening signal derived from NDVI change after cloud/shadow masking. It is not, by itself, proof of confirmed deforestation.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how-it-works">
+      <div class="container">
+        <div class="section-heading centered"><span class="section-kicker">FROM PIXELS TO ACTION</span><h2>A traceable workflow judges can understand.</h2><p>The interface mirrors the project pipeline so every result has a clear technical story behind it.</p></div>
+        <div class="workflow-grid">
+          <article class="workflow-card"><span class="step-number">01</span><div class="workflow-icon"><i class="fa-solid fa-satellite"></i></div><h3>Observe</h3><p>Find comparable Sentinel-2 L2A scenes and select a consistent January comparison window.</p></article>
+          <article class="workflow-card"><span class="step-number">02</span><div class="workflow-icon"><i class="fa-solid fa-cloud-sun"></i></div><h3>Clean</h3><p>Use the scene classification layer to exclude clouds and shadows before vegetation analysis.</p></article>
+          <article class="workflow-card"><span class="step-number">03</span><div class="workflow-icon"><i class="fa-solid fa-chart-area"></i></div><h3>Compare</h3><p>Compute NDVI, compare the selected years and isolate strong negative vegetation change.</p></article>
+          <article class="workflow-card"><span class="step-number">04</span><div class="workflow-icon"><i class="fa-solid fa-people-arrows"></i></div><h3>Collaborate</h3><p>Export evidence, create environmental reports and share findings with a community.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-dark" id="community">
+      <div class="container">
+        <div class="section-heading-row section-heading-light"><div><span class="section-kicker">COMMUNITY ACTION</span><h2>Turn a map observation into a shared environmental signal.</h2><p>Discover local groups, create a community for a region and share analysis findings with other members.</p></div><button class="btn btn-light" id="createCommunityBtn" type="button"><i class="fa-solid fa-plus"></i> Create Community</button></div>
+        <div class="community-controls"><div class="community-search"><i class="fa-solid fa-magnifying-glass"></i><input id="communitySearch" type="search" placeholder="Search communities by name, place or topic..."></div><div class="community-filters"><button class="chip chip-dark active community-filter" data-filter="all">All</button><button class="chip chip-dark community-filter" data-filter="forest">Forest</button><button class="chip chip-dark community-filter" data-filter="water">Water</button><button class="chip chip-dark community-filter" data-filter="climate">Climate</button></div></div>
+        <div class="community-grid" id="communityGrid"></div>
+        <div class="community-spotlight"><div class="spotlight-copy"><span class="mini-label">COMMUNITY REPORTING</span><h3>Found a suspicious change on the map?</h3><p>Open an environmental report with the location, observation details and available satellite analysis, then share it with a relevant community.</p></div><button class="btn btn-primary" id="communityReportBtn" type="button">Report an Environmental Issue <i class="fa-solid fa-arrow-right"></i></button></div>
+      </div>
+    </section>
+
+    <section class="section section-soft" id="report">
+      <div class="container">
+        <div class="section-heading-row"><div><span class="section-kicker">REPORT & FEEDBACK</span><h2>Raise an environmental issue or report a platform problem.</h2><p>This prototype provides a structured reporting flow. Reports are stored locally in this browser until a persistent backend is connected.</p></div><span class="section-badge"><i class="fa-solid fa-lock"></i> Demo-safe storage</span></div>
+        <div class="report-grid">
+          <form class="report-form-card" id="reportForm">
+            <div class="form-card-head"><div class="head-icon"><i class="fa-solid fa-flag"></i></div><div><span class="mini-label">SUBMIT A REPORT</span><h3>Environmental issue / feedback</h3></div></div>
+            <div class="form-grid">
+              <label class="field"><span>Full name <b>*</b></span><input id="reportName" type="text" placeholder="Enter your name" required></label>
+              <label class="field"><span>Email address <b>*</b></span><input id="reportEmail" type="email" placeholder="you@example.com" required></label>
+              <label class="field"><span>Issue type <b>*</b></span><select id="reportType" required><option value="">Select issue type</option><option>Suspected deforestation</option><option>Illegal clearing</option><option>Forest fire</option><option>Mining / land disturbance</option><option>Water or resource issue</option><option>Data / analysis feedback</option><option>Website / technical problem</option><option>Other</option></select></label>
+              <label class="field"><span>Observed date</span><input id="reportDate" type="date"></label>
+              <label class="field field-full"><span>Location</span><div class="field-with-button"><input id="reportLocation" type="text" placeholder="e.g. Bengaluru, Karnataka"><button class="mini-action" id="useAnalysisLocationBtn" type="button"><i class="fa-solid fa-map-location-dot"></i> Use map</button></div></label>
+              <label class="field field-full"><span>Description <b>*</b></span><textarea id="reportMessage" rows="6" placeholder="Describe what you observed, when you observed it and what makes it concerning." required></textarea></label>
+            </div>
+            <div class="report-check-row"><label class="check-option"><input type="checkbox" id="reportSatelliteEvidence"><span><i class="fa-solid fa-satellite"></i> I have supporting satellite analysis</span></label><label class="check-option"><input type="checkbox" id="reportCommunityShare"><span><i class="fa-solid fa-users"></i> Share a summary with a community</span></label></div>
+            <button class="btn btn-primary btn-full btn-large" type="submit"><i class="fa-solid fa-paper-plane"></i> Submit Report</button>
+            <p class="form-helper"><i class="fa-solid fa-circle-info"></i> Prototype note: this version records the report in your browser only.</p>
+          </form>
+
+          <div class="report-side">
+            <div class="side-info-card"><div class="side-card-icon"><i class="fa-solid fa-route"></i></div><div><span class="mini-label">REPORT LIFECYCLE</span><h3>Make reports traceable.</h3><p>Each local submission receives a reference ID and a simple status trail for the demo.</p></div><div class="status-flow"><span class="active">Submitted</span><i class="fa-solid fa-arrow-right"></i><span>Under Review</span><i class="fa-solid fa-arrow-right"></i><span>Follow-up</span></div></div>
+            <div class="side-info-card"><div class="side-card-icon"><i class="fa-solid fa-envelope"></i></div><div><span class="mini-label">SUPPORT</span><h3>Need platform help?</h3><p>Use this same form for environmental reports and website feedback during the prototype demo.</p></div><a class="text-link" href="#about">Read about the prototype <i class="fa-solid fa-arrow-right"></i></a></div>
+            <div class="side-info-card"><div class="history-head"><div><span class="mini-label">LOCAL REPORTS</span><h3>Your recent submissions</h3></div><span class="result-chip" id="reportCountChip">0</span></div><div id="reportHistory" class="report-history"><div class="empty-state compact"><span><i class="fa-regular fa-file-lines"></i></span><p>No reports submitted from this browser yet.</p></div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="container about-grid">
+        <div class="about-copy"><span class="section-kicker">ABOUT FOREST MONITOR</span><h2>A hackathon prototype designed to connect observation with action.</h2><p>Forest Monitor combines satellite imagery, cloud-aware preprocessing, NDVI change analysis and interactive geospatial visualization in one workflow. The current prototype focuses on transparent, reproducible screening rather than claiming confirmed deforestation from a single signal.</p><div class="about-badges"><span><i class="fa-solid fa-code"></i> Open technology stack</span><span><i class="fa-solid fa-database"></i> Public satellite data</span><span><i class="fa-solid fa-eye"></i> Explainable workflow</span></div><div class="transparency-card"><span class="transparency-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span><div><strong>AI roadmap</strong><p>The current MVP is satellite processing + NDVI change screening. A future AI/ML layer can classify change patterns and prioritize reports once suitable labeled training data is available.</p></div></div></div>
+        <div class="stack-card"><div class="stack-head"><div><span class="mini-label">TECHNICAL STACK</span><h3>Under the hood</h3></div><span class="tech-pill">Prototype</span></div><div class="stack-grid"><div><i class="fa-brands fa-python"></i><span>Python</span></div><div><i class="fa-solid fa-server"></i><span>Flask</span></div><div><i class="fa-solid fa-table-cells-large"></i><span>NumPy</span></div><div><i class="fa-solid fa-image"></i><span>Rasterio</span></div><div><i class="fa-solid fa-map"></i><span>Leaflet</span></div><div><i class="fa-solid fa-draw-polygon"></i><span>GeoJSON</span></div><div><i class="fa-solid fa-satellite"></i><span>Sentinel-2</span></div><div><i class="fa-solid fa-earth-americas"></i><span>OSM</span></div></div><div class="stack-footer"><span>Threshold screening</span><strong>NDVI Δ &lt; -0.20</strong></div></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="communityModal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="communityModalTitle"><button class="modal-close" data-close-modal="communityModal" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button><div class="modal-head"><span class="modal-icon"><i class="fa-solid fa-users"></i></span><div><span class="mini-label">BUILD A LOCAL NETWORK</span><h3 id="communityModalTitle">Create a community</h3><p>Set up a focused space for environmental monitoring and discussion.</p></div></div><form id="communityForm"><div class="form-grid"><label class="field field-full"><span>Community name <b>*</b></span><input id="communityName" type="text" placeholder="e.g. Bengaluru Forest Watch" required></label><label class="field"><span>Primary location</span><input id="communityLocation" type="text" placeholder="City / region"></label><label class="field"><span>Focus</span><select id="communityFocus"><option value="forest">Forest conservation</option><option value="water">Water & resources</option><option value="climate">Climate & resilience</option></select></label><label class="field field-full"><span>Description <b>*</b></span><textarea id="communityDescription" rows="4" placeholder="What does this community want to monitor or discuss?" required></textarea></label></div><button class="btn btn-primary btn-full btn-large" type="submit"><i class="fa-solid fa-circle-plus"></i> Create Community</button></form></div></div>
+
+  <div class="modal-backdrop" id="communityDetailModal" hidden><div class="modal-card wide-modal" role="dialog" aria-modal="true" aria-labelledby="communityDetailTitle"><button class="modal-close" data-close-modal="communityDetailModal" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button><div id="communityDetailContent"></div></div></div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-icon"><i class="fa-solid fa-check"></i></span><span id="toastMessage">Done</span></div>
+  <button class="back-to-top" id="backToTop" type="button" aria-label="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+
+  <footer class="site-footer">
+    <div class="container footer-top">
+      <div class="footer-brand"><a class="brand footer-brand-link" href="#home"><span class="brand-mark"><i class="fa-solid fa-leaf"></i></span><span class="brand-copy"><strong>Forest Monitor</strong><small>Satellite-Based Deforestation Monitoring</small></span></a><p>Observe vegetation change, document environmental signals and connect evidence with community action.</p><div class="footer-socials"><a href="https://github.com/Shashank-d404/satellite-based-deforestation-monitoring" target="_blank" rel="noopener" aria-label="GitHub"><i class="fa-brands fa-github"></i></a><a href="#community" aria-label="Community"><i class="fa-solid fa-users"></i></a><a href="#report" aria-label="Report an issue"><i class="fa-solid fa-flag"></i></a><a href="#analysis" aria-label="Analysis"><i class="fa-solid fa-chart-area"></i></a></div></div>
+      <div class="footer-column"><h4>Platform</h4><a href="#home">Home</a><a href="#analysis">Analyze</a><a href="#community">Community</a><a href="#report">Report Issue</a><a href="#about">About</a></div>
+      <div class="footer-column"><h4>Workflow</h4><a href="#how-it-works">How it works</a><a href="#analysis">NDVI analysis</a><a href="#analysis">Map layers</a><a href="#analysis">Exports</a><a href="#about">AI roadmap</a></div>
+      <div class="footer-newsletter"><span class="mini-label">STAY IN THE LOOP</span><h4>Project updates and demo news.</h4><p>Use this for the prototype experience; email delivery is not connected yet.</p><form id="newsletterForm" class="newsletter-form"><input id="newsletterEmail" type="email" placeholder="Your email address" required><button type="submit" aria-label="Subscribe"><i class="fa-solid fa-arrow-right"></i></button></form></div>
     </div>
-
-
-    <div id="map"></div>
-
-
-    <div class="legend">
-
-        <div class="legend-title">
-            NDVI
-        </div>
-
-
-        <div class="ndvi-gradient"></div>
-
-
-        <div class="gradient-labels">
-
-            <span>
-                Low vegetation
-            </span>
-
-            <span>
-                High vegetation
-            </span>
-
-        </div>
-
-
-        <div class="legend-title change-title">
-            NDVI Change
-        </div>
-
-
-        <div class="change-gradient"></div>
-
-
-        <div class="gradient-labels">
-
-            <span>
-                Decrease
-            </span>
-
-            <span>
-                Increase
-            </span>
-
-        </div>
-
-
-        <div class="legend-title detection-title">
-            Detection
-        </div>
-
-
-        <div class="legend-row">
-
-            <span class="legend-box"></span>
-
-            Potential vegetation loss
-
-        </div>
-
-    </div>
-
-
-</section>
-
-
-
-<!-- =================================================
-     INFORMATION
-================================================== -->
-
-<section class="info">
-
-    <h2>
-        How the Detection Works
-    </h2>
-
-
-    <p>
-
-        Sentinel-2 Level-2A imagery is used to
-        calculate NDVI for the selected baseline
-        and current years.
-
-    </p>
-
-
-    <p>
-
-        Scene Classification Layer (SCL) filtering
-        removes unsuitable cloud and shadow classes
-        before comparing the two years.
-
-    </p>
-
-
-    <p>
-
-        Pixels with an NDVI decrease below
-        <strong id="threshold-text">
-            -0.20
-        </strong>
-        are flagged as potential vegetation loss.
-
-    </p>
-
-
-    <p id="status">
-        Loading satellite analysis...
-    </p>
-
-</section>
-
-
-
-<script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-></script>
-
-
-
-<script>
-
-
-// =================================================
-// YEAR SELECTORS
-// =================================================
-
-const MIN_YEAR = 2016;
-
-const MAX_YEAR = 2026;
-
-
-const baselineSelect =
-    document.getElementById(
-        "baseline-year"
-    );
-
-
-const currentSelect =
-    document.getElementById(
-        "current-year"
-    );
-
-
-const runButton =
-    document.getElementById(
-        "run-analysis"
-    );
-
-
-const exportReportButton =
-    document.getElementById(
-        "export-report"
-    );
-
-
-const exportGeoJSONButton =
-    document.getElementById(
-        "export-geojson"
-    );
-
-
-const analysisMessage =
-    document.getElementById(
-        "analysis-message"
-    );
-
-
-// -------------------------------------------------
-// Populate year selectors
-// -------------------------------------------------
-
-function populateYears() {
-
-    for (
-        let year = MAX_YEAR;
-        year >= MIN_YEAR;
-        year--
-    ) {
-
-        const baselineOption =
-            document.createElement(
-                "option"
-            );
-
-        baselineOption.value =
-            year;
-
-        baselineOption.textContent =
-            year;
-
-        baselineSelect.appendChild(
-            baselineOption
-        );
-
-
-        const currentOption =
-            document.createElement(
-                "option"
-            );
-
-        currentOption.value =
-            year;
-
-        currentOption.textContent =
-            year;
-
-        currentSelect.appendChild(
-            currentOption
-        );
-
-    }
-
-
-    baselineSelect.value =
-        "2025";
-
-    currentSelect.value =
-        "2026";
-
-}
-
-
-populateYears();
-
-
-
-// =================================================
-// MAP
-// =================================================
-
-const defaultCenter = [
-    13.0,
-    77.5
-];
-
-
-const defaultZoom = 9;
-
-
-const map = L.map(
-    "map"
-).setView(
-    defaultCenter,
-    defaultZoom
-);
-
-
-const streetLayer =
-    L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-            attribution:
-                "&copy; OpenStreetMap contributors"
-        }
-    ).addTo(map);
-
-
-const detectionLayerGroup =
-    L.layerGroup().addTo(map);
-
-
-const layerControl =
-    L.control.layers(
-        {
-            "Street Map":
-                streetLayer
-        },
-        {
-            "Potential vegetation loss":
-                detectionLayerGroup
-        }
-    ).addTo(map);
-
-
-let dynamicLayerControlEntries =
-    [];
-
-let analysisBounds =
-    null;
-
-let searchMarker =
-    null;
-
-
-
-// =================================================
-// SEARCH
-// =================================================
-
-const searchInput =
-    document.getElementById(
-        "region-search"
-    );
-
-
-const searchButton =
-    document.getElementById(
-        "search-button"
-    );
-
-
-const searchResults =
-    document.getElementById(
-        "search-results"
-    );
-
-
-const selectedRegion =
-    document.getElementById(
-        "selected-region"
-    );
-
-
-function escapeHtml(value) {
-
-    return String(value)
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}
-
-
-function searchRegion() {
-
-    const query =
-        searchInput.value.trim();
-
-
-    if (!query) {
-
-        searchResults.innerHTML =
-            "<p>Please enter a location.</p>";
-
-        return;
-
-    }
-
-
-    searchResults.innerHTML =
-        "<p>Searching...</p>";
-
-
-    selectedRegion.innerHTML =
-        "";
-
-
-    fetch(
-        `/api/geocode?q=${encodeURIComponent(query)}`
-    )
-
-        .then(response => {
-
-            if (!response.ok) {
-
-                throw new Error(
-                    `Search failed: ${response.status}`
-                );
-
-            }
-
-            return response.json();
-
-        })
-
-        .then(data => {
-
-            searchResults.innerHTML =
-                "";
-
-
-            if (
-                !data.results ||
-                data.results.length === 0
-            ) {
-
-                searchResults.innerHTML =
-                    "<p>No matching locations found.</p>";
-
-                return;
-
-            }
-
-
-            const heading =
-                document.createElement(
-                    "p"
-                );
-
-
-            heading.textContent =
-                `${data.count} result(s) found`;
-
-
-            searchResults.appendChild(
-                heading
-            );
-
-
-            data.results.forEach(
-                function(location) {
-
-                    const button =
-                        document.createElement(
-                            "button"
-                        );
-
-
-                    button.type =
-                        "button";
-
-
-                    button.className =
-                        "result-button";
-
-
-                    const name =
-                        document.createElement(
-                            "strong"
-                        );
-
-
-                    name.textContent =
-                        location.name;
-
-
-                    button.appendChild(
-                        name
-                    );
-
-
-                    const details =
-                        document.createElement(
-                            "small"
-                        );
-
-
-                    details.textContent =
-                        `${location.category || "location"} · ` +
-                        `${location.type || "unknown"}`;
-
-
-                    button.appendChild(
-                        details
-                    );
-
-
-                    button.addEventListener(
-                        "click",
-                        function() {
-
-                            const latitude =
-                                location.latitude;
-
-
-                            const longitude =
-                                location.longitude;
-
-
-                            map.setView(
-                                [
-                                    latitude,
-                                    longitude
-                                ],
-                                14
-                            );
-
-
-                            if (
-                                searchMarker
-                            ) {
-
-                                map.removeLayer(
-                                    searchMarker
-                                );
-
-                            }
-
-
-                            searchMarker =
-                                L.marker(
-                                    [
-                                        latitude,
-                                        longitude
-                                    ]
-                                ).addTo(map);
-
-
-                            searchMarker
-                                .bindPopup(
-                                    `<strong>${escapeHtml(
-                                        location.name
-                                    )}</strong><br>` +
-                                    `${escapeHtml(
-                                        location.category ||
-                                        "location"
-                                    )} · ` +
-                                    `${escapeHtml(
-                                        location.type ||
-                                        "unknown"
-                                    )}`
-                                )
-                                .openPopup();
-
-
-                            selectedRegion.innerHTML =
-                                `<strong>Selected location:</strong> ` +
-                                `${escapeHtml(
-                                    location.name
-                                )}<br>` +
-                                `<span>Latitude: ${
-                                    latitude.toFixed(5)
-                                } | Longitude: ${
-                                    longitude.toFixed(5)
-                                }</span>`;
-
-
-                            searchResults.innerHTML =
-                                "";
-
-                        }
-                    );
-
-
-                    searchResults.appendChild(
-                        button
-                    );
-
-                }
-            );
-
-        })
-
-
-        .catch(error => {
-
-            console.error(
-                "Search error:",
-                error
-            );
-
-
-            searchResults.innerHTML =
-                "<p>Unable to search for this location.</p>";
-
-        });
-
-}
-
-
-searchButton.addEventListener(
-    "click",
-    searchRegion
-);
-
-
-searchInput.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (
-            event.key === "Enter"
-        ) {
-
-            searchRegion();
-
-        }
-
-    }
-);
-
-
-
-// =================================================
-// CLEAR DYNAMIC MAP LAYERS
-// =================================================
-
-function clearDynamicLayers() {
-
-    dynamicLayerControlEntries.forEach(
-        function(entry) {
-
-            layerControl.removeLayer(
-                entry.layer
-            );
-
-
-            if (
-                map.hasLayer(
-                    entry.layer
-                )
-            ) {
-
-                map.removeLayer(
-                    entry.layer
-                );
-
-            }
-
-        }
-    );
-
-
-    dynamicLayerControlEntries =
-        [];
-
-
-    detectionLayerGroup.clearLayers();
-
-}
-
-
-
-// =================================================
-// RUN ANALYSIS
-// =================================================
-
-function runAnalysis() {
-
-    const baselineYear =
-        Number(
-            baselineSelect.value
-        );
-
-
-    const currentYear =
-        Number(
-            currentSelect.value
-        );
-
-
-    if (
-        baselineYear >= currentYear
-    ) {
-
-        analysisMessage.textContent =
-            "Baseline year must be earlier than current year.";
-
-        return;
-
-    }
-
-
-    runButton.disabled =
-        true;
-
-    exportReportButton.disabled =
-        true;
-
-    exportGeoJSONButton.disabled =
-        true;
-
-
-    runButton.textContent =
-        "Analyzing...";
-
-
-    analysisMessage.textContent =
-        `Finding Sentinel-2 scenes for ${baselineYear} and ${currentYear}...`;
-
-
-    clearDynamicLayers();
-
-
-    fetch(
-        "/api/run-analysis",
-        {
-
-            method:
-                "POST",
-
-            headers:
-                {
-                    "Content-Type":
-                        "application/json"
-                },
-
-            body:
-                JSON.stringify({
-
-                    baseline_year:
-                        baselineYear,
-
-                    current_year:
-                        currentYear
-
-                })
-
-        }
-    )
-
-
-        .then(response => {
-
-            return response.json()
-                .then(data => {
-
-                    if (
-                        !response.ok
-                    ) {
-
-                        throw new Error(
-                            data.error ||
-                            `Server error: ${response.status}`
-                        );
-
-                    }
-
-                    return data;
-
-                });
-
-        })
-
-
-        .then(data => {
-
-            updateDashboard(
-                data
-            );
-
-
-            updateMap(
-                data
-            );
-
-
-            exportReportButton.disabled =
-                false;
-
-            exportGeoJSONButton.disabled =
-                false;
-
-
-            analysisMessage.textContent =
-                `Analysis completed: ${baselineYear} → ${currentYear}`;
-
-        })
-
-
-        .catch(error => {
-
-            console.error(
-                "Analysis error:",
-                error
-            );
-
-
-            analysisMessage.textContent =
-                error.message;
-
-
-            document.getElementById(
-                "map-status"
-            ).textContent =
-                "Unable to complete selected-year analysis.";
-
-        })
-
-
-        .finally(() => {
-
-            runButton.disabled =
-                false;
-
-            runButton.textContent =
-                "Run Analysis";
-
-        });
-
-}
-
-
-runButton.addEventListener(
-    "click",
-    runAnalysis
-);
-
-
-
-// =================================================
-// DOWNLOAD HELPER
-// =================================================
-
-async function downloadFile(
-    url,
-    defaultFilename
-) {
-
-    const response =
-        await fetch(url);
-
-
-    if (!response.ok) {
-
-        let message =
-            "Export failed.";
-
-        try {
-
-            const data =
-                await response.json();
-
-            if (
-                data.error
-            ) {
-
-                message =
-                    data.error;
-
-            }
-
-        } catch (
-            error
-        ) {
-
-            // Keep default message.
-        }
-
-
-        throw new Error(
-            message
-        );
-
-    }
-
-
-    const blob =
-        await response.blob();
-
-
-    const downloadUrl =
-        URL.createObjectURL(
-            blob
-        );
-
-
-    const link =
-        document.createElement(
-            "a"
-        );
-
-
-    link.href =
-        downloadUrl;
-
-
-    link.download =
-        defaultFilename;
-
-
-    document.body.appendChild(
-        link
-    );
-
-
-    link.click();
-
-
-    link.remove();
-
-
-    URL.revokeObjectURL(
-        downloadUrl
-    );
-
-}
-
-
-
-// =================================================
-// EXPORT REPORT
-// =================================================
-
-exportReportButton.addEventListener(
-    "click",
-    async function() {
-
-        const baselineYear =
-            baselineSelect.value;
-
-        const currentYear =
-            currentSelect.value;
-
-
-        const filename =
-            `forest_monitor_${baselineYear}_${currentYear}.txt`;
-
-
-        try {
-
-            exportReportButton.disabled =
-                true;
-
-            exportReportButton.textContent =
-                "Exporting...";
-
-
-            await downloadFile(
-
-                `/api/export/report?baseline_year=${baselineYear}&current_year=${currentYear}`,
-
-                filename
-
-            );
-
-
-            analysisMessage.textContent =
-                "Analysis report downloaded.";
-
-        }
-
-        catch (
-            error
-        ) {
-
-            console.error(
-                error
-            );
-
-
-            analysisMessage.textContent =
-                error.message;
-
-        }
-
-        finally {
-
-            exportReportButton.disabled =
-                false;
-
-            exportReportButton.textContent =
-                "Export Report";
-
-        }
-
-    }
-);
-
-
-
-// =================================================
-// EXPORT GEOJSON
-// =================================================
-
-exportGeoJSONButton.addEventListener(
-    "click",
-    async function() {
-
-        const baselineYear =
-            baselineSelect.value;
-
-        const currentYear =
-            currentSelect.value;
-
-
-        const filename =
-            `potential_loss_${baselineYear}_${currentYear}.geojson`;
-
-
-        try {
-
-            exportGeoJSONButton.disabled =
-                true;
-
-            exportGeoJSONButton.textContent =
-                "Exporting...";
-
-
-            await downloadFile(
-
-                `/api/export/geojson?baseline_year=${baselineYear}&current_year=${currentYear}`,
-
-                filename
-
-            );
-
-
-            analysisMessage.textContent =
-                "Potential-loss GeoJSON downloaded.";
-
-        }
-
-        catch (
-            error
-        ) {
-
-            console.error(
-                error
-            );
-
-
-            analysisMessage.textContent =
-                error.message;
-
-        }
-
-        finally {
-
-            exportGeoJSONButton.disabled =
-                false;
-
-            exportGeoJSONButton.textContent =
-                "Export GeoJSON";
-
-        }
-
-    }
-);
-
-
-
-// =================================================
-// UPDATE DASHBOARD
-// =================================================
-
-function updateDashboard(
-    data
-) {
-
-    const statistics =
-        data.statistics;
-
-
-    document.getElementById(
-        "baseline"
-    ).textContent =
-        data.comparison.baseline_year;
-
-
-    document.getElementById(
-        "current"
-    ).textContent =
-        data.comparison.current_year;
-
-
-    document.getElementById(
-        "mean-change"
-    ).textContent =
-        statistics.mean_ndvi_change
-            .toFixed(4);
-
-
-    document.getElementById(
-        "loss-share"
-    ).textContent =
-        statistics.potential_loss_share
-            .toFixed(2)
-        + "%";
-
-
-    document.getElementById(
-        "loss-pixels"
-    ).textContent =
-        statistics.potential_loss_pixels
-            .toLocaleString();
-
-
-    document.getElementById(
-        "valid-pixels"
-    ).textContent =
-        statistics.valid_pixels
-            .toLocaleString();
-
-
-    document.getElementById(
-        "region-count"
-    ).textContent =
-        statistics.detected_regions;
-
-
-    document.getElementById(
-        "threshold"
-    ).textContent =
-        data.threshold.toFixed(2);
-
-
-    document.getElementById(
-        "threshold-text"
-    ).textContent =
-        data.threshold.toFixed(2);
-
-
-    document.getElementById(
-        "baseline-scene"
-    ).textContent =
-        data.baseline_scene.item_id;
-
-
-    document.getElementById(
-        "current-scene"
-    ).textContent =
-        data.current_scene.item_id;
-
-
-    document.getElementById(
-        "baseline-cloud"
-    ).textContent =
-        formatCloudCover(
-            data.baseline_scene.cloud_cover
-        );
-
-
-    document.getElementById(
-        "current-cloud"
-    ).textContent =
-        formatCloudCover(
-            data.current_scene.cloud_cover
-        );
-
-
-    document.getElementById(
-        "status"
-    ).textContent =
-        `${statistics.potential_loss_pixels} pixels were flagged as potential vegetation loss after cloud/shadow masking.`;
-
-}
-
-
-function formatCloudCover(
-    value
-) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-
-        return "N/A";
-
-    }
-
-
-    return (
-        Number(value)
-        .toFixed(2)
-        + "%"
-    );
-
-}
-
-
-
-// =================================================
-// UPDATE MAP
-// =================================================
-
-function updateMap(
-    data
-) {
-
-    clearDynamicLayers();
-
-
-    analysisBounds =
-        L.latLngBounds(
-            data.bounds
-        );
-
-
-    // ---------------------------------------------
-    // Baseline NDVI
-    // ---------------------------------------------
-
-    const baselineLayer =
-        L.imageOverlay(
-
-            data.layers
-                .ndvi_baseline
-                .url,
-
-            data.layers
-                .ndvi_baseline
-                .bounds,
-
-            {
-                opacity:
-                    0.65,
-
-                interactive:
-                    false
-            }
-
-        );
-
-
-    layerControl.addOverlay(
-        baselineLayer,
-        data.layers
-            .ndvi_baseline
-            .label
-    );
-
-
-    dynamicLayerControlEntries.push({
-
-        layer:
-            baselineLayer,
-
-        name:
-            data.layers
-                .ndvi_baseline
-                .label
-
-    });
-
-
-
-    // ---------------------------------------------
-    // Current NDVI
-    // ---------------------------------------------
-
-    const currentLayer =
-        L.imageOverlay(
-
-            data.layers
-                .ndvi_current
-                .url,
-
-            data.layers
-                .ndvi_current
-                .bounds,
-
-            {
-                opacity:
-                    0.65,
-
-                interactive:
-                    false
-            }
-
-        );
-
-
-    layerControl.addOverlay(
-        currentLayer,
-        data.layers
-            .ndvi_current
-            .label
-    );
-
-
-    dynamicLayerControlEntries.push({
-
-        layer:
-            currentLayer,
-
-        name:
-            data.layers
-                .ndvi_current
-                .label
-
-    });
-
-
-
-    // ---------------------------------------------
-    // NDVI Change
-    // ---------------------------------------------
-
-    const changeLayer =
-        L.imageOverlay(
-
-            data.layers
-                .ndvi_change
-                .url,
-
-            data.layers
-                .ndvi_change
-                .bounds,
-
-            {
-                opacity:
-                    0.75,
-
-                interactive:
-                    false
-            }
-
-        );
-
-
-    layerControl.addOverlay(
-        changeLayer,
-        data.layers
-            .ndvi_change
-            .label
-    );
-
-
-    dynamicLayerControlEntries.push({
-
-        layer:
-            changeLayer,
-
-        name:
-            data.layers
-                .ndvi_change
-                .label
-
-    });
-
-
-
-    // ---------------------------------------------
-    // Potential-loss GeoJSON
-    // ---------------------------------------------
-
-    fetch(
-        data.layers
-            .potential_loss
-            .url
-    )
-
-        .then(
-            response =>
-                response.json()
-        )
-
-        .then(
-            geojson => {
-
-                const lossLayer =
-                    L.geoJSON(
-                        geojson,
-                        {
-
-                            style: {
-
-                                weight:
-                                    2,
-
-                                fillOpacity:
-                                    0.65
-
-                            },
-
-
-                            onEachFeature:
-                            function(
-                                feature,
-                                layer
-                            ) {
-
-                                const properties =
-                                    feature.properties;
-
-
-                                layer.bindPopup(
-
-                                    `<strong>
-                                        Potential vegetation loss
-                                    </strong>
-                                    <br>
-                                    Method:
-                                    Cloud-masked NDVI change
-                                    <br>
-                                    Threshold:
-                                    ${properties.threshold}`
-
-                                );
-
-                            }
-
-                        }
-                    );
-
-
-                detectionLayerGroup.addLayer(
-                    lossLayer
-                );
-
-
-                if (
-                    map.hasLayer(
-                        detectionLayerGroup
-                    )
-                ) {
-
-                    detectionLayerGroup.bringToFront();
-
-                }
-
-
-                document.getElementById(
-                    "region-count"
-                ).textContent =
-                    geojson.features.length;
-
-
-                document.getElementById(
-                    "map-status"
-                ).textContent =
-                    `${geojson.features.length} detected regions available for the selected year comparison.`;
-
-            }
-        );
-
-
-    if (
-        analysisBounds &&
-        analysisBounds.isValid()
-    ) {
-
-        map.fitBounds(
-            analysisBounds,
-            {
-                padding:
-                    [
-                        20,
-                        20
-                    ]
-            }
-        );
-
-    }
-
-}
-
-
-
-// =================================================
-// RESET MAP
-// =================================================
-
-document
-    .getElementById(
-        "reset-view"
-    )
-    .addEventListener(
-        "click",
-        function() {
-
-            if (
-                searchMarker
-            ) {
-
-                map.removeLayer(
-                    searchMarker
-                );
-
-                searchMarker =
-                    null;
-
-            }
-
-
-            selectedRegion.innerHTML =
-                "";
-
-
-            if (
-                analysisBounds &&
-                analysisBounds.isValid()
-            ) {
-
-                map.fitBounds(
-                    analysisBounds,
-                    {
-                        padding:
-                            [
-                                20,
-                                20
-                            ]
-                    }
-                );
-
-            }
-
-        }
-    );
-
-
-
-// =================================================
-// INITIAL ANALYSIS
-// =================================================
-
-runAnalysis();
-
-
-</script>
-
-
+    <div class="container footer-bottom"><div><span>© 2026 Forest Monitor</span><span class="footer-separator">•</span><span>Hackathon prototype</span></div><div class="footer-note">Satellite-based potential-loss signals are screening outputs and should not be treated as independently verified deforestation events.</div></div>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="script.js"></script>
 </body>
-
 </html>
