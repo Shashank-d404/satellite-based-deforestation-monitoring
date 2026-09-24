@@ -1,384 +1,427 @@
-# AI-Powered Personalized Content Discovery
+# Satellite-Based Deforestation Monitoring
 
-> **NETFLIX — The Discovery Problem**
+A web-based satellite analysis platform for monitoring vegetation change and screening for potential deforestation using Sentinel-2 imagery, NDVI change analysis, cloud/shadow masking, and an interactive map dashboard.
 
-A student-built AI project prototype that addresses streaming-platform catalog fatigue by combining natural-language preference extraction with a deterministic, catalog-grounded recommendation engine.
+> **Hackathon:** National Level Hackathon on AI for Sustainability — JAIN (Deemed-to-be University), 24–25 September 2026
 
-> **Academic prototype:** This project is an independent student prototype inspired by the stated “NETFLIX — The Discovery Problem” project theme. It is **not an official Netflix product or system**.
+## Live Demo
 
-## Problem Statement
+**https://satellite-based-deforestation-monitoring.onrender.com/**
 
-Large streaming catalogs can make content discovery difficult. Users may know what they want in natural language—for example, a dark science-fiction thriller in English under two hours—but still have to manually search through many titles and filters.
+## GitHub Repository
 
-This project explores a lightweight AI-assisted solution:
+**https://github.com/Shashank-d404/satellite-based-deforestation-monitoring**
 
-**User preference → preference extraction → verified catalog preferences → deterministic ranking → personalized recommendations**
+---
 
-The system keeps recommendation candidates grounded in a local content catalog rather than allowing an AI model to invent titles.
+## Problem
 
-## Project Overview
+Deforestation and vegetation degradation are spatial and time-dependent problems. Monitoring large areas manually using satellite imagery is difficult because:
 
-The application provides two ways to request recommendations:
+- Satellite scenes can contain clouds and shadows that affect analysis.
+- Large raster datasets are difficult to inspect manually.
+- Comparing vegetation conditions across different time periods requires consistent processing.
+- A useful monitoring workflow should present the results in a form that non-specialist users can explore visually.
 
-1. **Natural-language discovery** — describe what you want in ordinary language.
-2. **Structured discovery** — select filters such as genre, language, content type, mood, and maximum duration.
+This project addresses these challenges with an automated satellite-image processing pipeline and an interactive web dashboard.
 
-Google Gemini is used for natural-language preference extraction when an API key is available. Final title selection and ranking are performed by the deterministic Python recommendation engine.
+---
+
+## Solution
+
+The system retrieves Sentinel-2 Level-2A imagery for a selected year pair, processes the spectral bands required for vegetation analysis, masks unwanted scene classes, calculates NDVI, compares the two years, and visualizes areas showing substantial vegetation-index decline.
+
+The current prototype is a **satellite-analysis and potential vegetation-loss screening system**. A detected change is **not automatically classified as confirmed deforestation**.
+
+### Core pipeline
+
+```text
+Sentinel-2 L2A
+      |
+      v
+ B04 + B08 + SCL
+      |
+      v
+Cloud / Shadow Masking
+      |
+      v
+     NDVI
+      |
+      v
+Baseline Year vs Present Year
+      |
+      v
+    NDVI Change
+      |
+      v
+Potential Vegetation-Loss Mask
+      |
+      v
+ GeoJSON + Statistics
+      |
+      v
+Flask API + Leaflet Dashboard
+```
+
+---
 
 ## Key Features
 
-- Natural-language content discovery
-- Structured preference filters
-- AI-assisted preference extraction using Google Gemini
-- Deterministic recommendation ranking
-- Catalog-grounded recommendations
-- Transparent recommendation score breakdown
-- Match reasons for recommended titles
-- Genre, mood, language, content-type, and duration matching
-- Quality-rating contribution to the score
-- Offline heuristic fallback when Gemini is unavailable
-- Catalog taxonomy validation
-- REST-style JSON API
-- Interactive web frontend
-- Automated test suite
+### Satellite analysis
+
+- Sentinel-2 Level-2A imagery
+- Dynamic year selection from **2016–2026**
+- Consistent January comparison workflow
+- Automatic scene selection using cloud-cover information
+- B04 (Red) and B08 (Near Infrared) spectral bands
+- Scene Classification Layer (SCL) filtering
+- Vegetation and bare-soil pixel filtering
+- NDVI calculation
+- NDVI change calculation between two selected years
+- Potential vegetation-loss screening using an NDVI-change threshold
+- GeoJSON generation for mapped potential-loss regions
+- Analysis caching for repeated year pairs
+
+### Interactive dashboard
+
+- Interactive Leaflet map
+- OpenStreetMap and satellite imagery base layers
+- Toggleable analysis layers
+- Year-pair selection
+- Location search/geocoding
+- Analysis statistics
+- Report export
+- GeoJSON export
+- Responsive interface with light/dark theme support
+
+### Community and reporting prototype
+
+- Community creation interface
+- Join/open community workflow
+- Share-analysis interface
+- Local issue/complaint submission
+- Browser-based report history and status tracking
+
+> Community and reporting data are currently stored in the browser using `localStorage`; there is no multi-user database in the current prototype.
+
+---
 
 ## Technology Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | HTML5, CSS3, Vanilla JavaScript |
-| Backend | Python, Flask |
-| AI/NLP | Google Gemini API |
-| Recommendation logic | Deterministic Python scoring |
-| Data | JSON |
-| Testing | Pytest |
-| Version control | Git / GitHub |
-| Environment configuration | `.env` + `python-dotenv` |
+### Backend
 
-## System Architecture
+- Python
+- Flask
+- Gunicorn
+- NumPy
+- Rasterio
+- Requests
+- STAC / Planetary Computer tooling
+- GeoJSON generation
+
+### Frontend
+
+- HTML5
+- CSS3
+- JavaScript
+- Leaflet.js
+- OpenStreetMap
+- Esri satellite basemap
+
+### Satellite data
+
+- Microsoft Planetary Computer STAC catalog
+- Sentinel-2 Level-2A imagery
+- B04 — Red
+- B08 — Near Infrared
+- SCL — Scene Classification Layer
+
+### Deployment
+
+- Render Web Service
+- Gunicorn
+- HTTPS public deployment
+
+---
+
+## NDVI Method
+
+The Normalized Difference Vegetation Index is calculated as:
 
 ```text
-Web Frontend
-HTML + CSS + Vanilla JS
-        |
-        | HTTP / JSON
-        v
-Flask Backend
-app.py / API routes
-        |
-        +----------------+
-        |                |
-        v                v
-Gemini Service      Catalog Service
-Preference          Load + validate
-extraction          + index catalog
-        |                |
-        +-------+--------+
-                v
-        Recommendation Engine
-        Deterministic scoring
-                |
-                v
-        Ranked catalog results
-AI Workflow
+NDVI = (NIR - Red) / (NIR + Red)
+```
 
-For a natural-language request such as:
+For Sentinel-2 in this project:
 
-I want a dark sci-fi thriller in English, preferably a movie under two hours.
+```text
+NIR = B08
+Red = B04
+```
 
-the system:
+For a selected baseline year `Y1` and present year `Y2`:
 
-Receives the request through POST /api/recommend/natural.
-Uses Gemini to extract structured preferences when available.
-Validates extracted values against supported catalog taxonomies.
-Uses the deterministic recommendation engine to evaluate catalog titles.
-Returns recommendations with scores, reasons, metadata, and extraction mode.
+```text
+NDVI Change = NDVI(Y2) - NDVI(Y1)
+```
 
-Gemini does not choose or invent the final titles.
+The current screening threshold is:
 
-Recommendation Scoring
+```text
+NDVI Change <= -0.20
+```
 
-The recommendation engine uses a transparent 100-point scoring model:
+Pixels meeting this condition are marked as **potential vegetation loss** after the project’s scene-class filtering and common-valid-pixel processing.
 
-Factor	Maximum points
-Genre match	35
-Mood / tags match	25
-Language match	15
-Content type match	10
-Duration match	10
-Quality-rating contribution	5
-Total	100
+The threshold is a screening rule for the prototype. It should not be interpreted as proof that a location has been deforested.
 
-Optional preferences are not treated as mismatches when the user does not provide them.
+---
 
-The score is a project-defined match score, not a prediction of what a real streaming platform would recommend.
+## Study Area
 
-Catalog Grounding
+The current dynamic analysis uses Sentinel-2 tile **T43PEP** as the study tile.
 
-Recommendations are grounded in the project's local catalog.
+The prototype compares imagery from the same tile and processing workflow to reduce differences caused by changing spatial coverage.
 
-The recommendation engine only returns titles that exist in:
+For the default January workflow, the system searches available Sentinel-2 Level-2A scenes and selects a suitable scene using cloud-cover metadata.
 
-data/catalog.json
+---
 
-The AI model is used for preference extraction rather than generating arbitrary movie or series titles.
+## Project Structure
 
-The project does not claim zero hallucinations or guaranteed correctness.
-
-Gemini Fallback
-
-The application can remain usable when Gemini cannot be used.
-
-Fallback conditions include:
-
-GEMINI_API_KEY is not configured
-Gemini request failure
-timeout or API error
-malformed or unparseable model output
-
-In those situations, the backend uses an offline heuristic extraction path based on supported catalog taxonomies and common input variations.
-
-The API identifies the extraction mode so the frontend can distinguish Gemini processing from offline fallback processing.
-
-API Endpoints
-GET /
-
-Serves the web application.
-
-GET /api/health
-
-Returns backend health information.
-
-GET /api/catalog/filters
-
-Returns supported catalog filters and taxonomies.
-
-GET /api/catalog/items
-
-Returns catalog items.
-
-POST /api/recommend
-
-Accepts structured recommendation preferences.
-
-Example:
-
-{
-  "genres": ["Sci-Fi", "Thriller"],
-  "language": "English",
-  "content_type": "Movie",
-  "mood": "Dark",
-  "max_duration": 120,
-  "top_n": 5
-}
-POST /api/recommend/natural
-
-Accepts a natural-language discovery request.
-
-Example:
-
-{
-  "query": "I want a dark sci-fi thriller in English, preferably a movie under two hours",
-  "top_n": 5
-}
-Project Structure
-netflix-discovery-ai/
-├── app.py
-├── README.md
-├── requirements.txt
-├── .env.example
-├── .gitignore
+```text
+satellite-based-deforestation-monitoring/
+|
+├── backend/
+│   ├── app.py
+│   └── dynamic_analysis.py
+│
+├── frontend/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
 │
 ├── data/
-│   ├── catalog.json
-│   └── catalog_schema.json
+│   ├── sentinel2/              # local/raw satellite data when used
+│   ├── ndvi/                   # generated NDVI rasters
+│   ├── dynamic_analysis/       # generated year-pair analysis outputs
+│   └── ai_dataset/             # future AI/ML dataset
 │
-├── services/
-│   ├── __init__.py
-│   ├── catalog_service.py
-│   ├── gemini_service.py
-│   └── recommender.py
-│
-├── static/
-│   ├── css/
-│   │   └── style.css
-│   └── js/
-│       └── app.js
-│
-├── templates/
-│   └── index.html
-│
-└── tests/
-    ├── __init__.py
-    ├── test_api.py
-    ├── test_catalog.py
-    ├── test_gemini.py
-    └── test_recommender.py
-Installation
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-cd netflix-discovery-ai
+├── models/                     # future trained models
+├── requirements.txt
+├── .gitignore
+└── README.md
+```
+
+Generated satellite rasters, analysis outputs, datasets, models, virtual environments, and secrets should not be committed to the repository.
+
+---
+
+## Running Locally
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Shashank-d404/satellite-based-deforestation-monitoring.git
+cd satellite-based-deforestation-monitoring
+```
+
+### 2. Create and activate a virtual environment
+
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
+```
+
+On Windows:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+### 3. Install dependencies
+
+```bash
 pip install -r requirements.txt
-Environment Configuration
+```
 
-Create a local .env file:
+### 4. Start the Flask application
 
-GEMINI_API_KEY=your_api_key_here
+From the repository root:
 
-The project provides .env.example as a template.
+```bash
+python backend/app.py
+```
 
-Never commit your real API key.
+Open the local address shown by Flask, typically:
 
-The .gitignore excludes .env and the Python virtual environment from Git tracking.
+```text
+http://127.0.0.1:5000/
+```
 
-If a Gemini API key is not provided, the application can use its offline heuristic fallback for natural-language extraction.
+### Production-style local start
 
-Running the Application
+```bash
+gunicorn --chdir backend app:app --bind 0.0.0.0:10000
+```
 
-Activate the virtual environment:
+---
 
-source .venv/bin/activate
+## API Endpoints
 
-Start Flask:
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/health` | GET | Health check for the deployed service |
+| `/api/analysis` | GET | Returns analysis metadata/statistics |
+| `/api/deforestation` | GET | Returns potential-loss GeoJSON/data |
+| `/api/visuals` | GET | Returns available visualization information |
+| `/api/run-analysis` | POST | Runs a selected baseline/present-year comparison |
+| `/api/export/report` | GET | Exports a text report for a selected year pair |
+| `/api/export/geojson` | GET | Exports GeoJSON for a selected year pair |
+| `/api/geocode` | GET | Searches locations for the map interface |
 
-python app.py
+---
 
-Then open the local address shown by Flask in your browser.
+## Example Analysis Output
 
-Running Tests
+One static comparison used during development was January **2025 → January 2026**.
 
-Run the complete test suite with:
+Example prototype statistics:
 
-python -m pytest -q
+- Common valid pixels: **192,608**
+- Mean NDVI change: approximately **-0.0052**
+- Minimum NDVI change: approximately **-0.3792**
+- Maximum NDVI change: approximately **0.1958**
+- Potential-loss threshold: **-0.20**
+- Potential-loss pixels: **23**
+- Potential-loss share: approximately **0.01%**
+- GeoJSON regions: **10**
 
-Current verified project state:
+These values are specific to the processed study tile, scene selection, masking rules, and date pair used by the prototype. They should not be generalized to all of Bengaluru or to an entire state/region.
 
-61 passed
+---
 
-The test suite covers catalog loading and validation, recommendation scoring, Gemini/fallback behavior, and API behavior.
+## Current AI Status
 
-Testing Philosophy
+The project theme is **AI for Sustainability**, but the deployed MVP currently focuses on reliable satellite-data processing and change detection rather than claiming an AI classifier that has not been trained and validated.
 
-Tests cover:
+### Current MVP
 
-catalog loading
-catalog schema validation
-invalid catalog handling
-preference sanitization
-recommendation scoring
-score breakdowns
-match reasons
-ranking and tie-breaking
-API request validation
-API response structure
-Gemini service behavior
-fallback extraction
-natural-language recommendation flow
+- Satellite data retrieval
+- Cloud/shadow and scene-class filtering
+- NDVI generation
+- Multi-year comparison
+- Potential vegetation-loss screening
+- GeoJSON analysis output
+- Interactive visualization dashboard
 
-External Gemini network access is not required for the automated test suite.
+### Planned AI/ML extension
 
-Frontend
+A future version can combine:
 
-The frontend provides:
+```text
+Spectral Features
+      +
+Temporal Change Features
+      +
+Image / Texture Features
+      |
+      v
+AI / ML Classifier
+      |
+      v
+Change Classification
+      |
+      v
+Confidence / Priority Score
+```
 
-project introduction
-live backend/AI status
-natural-language prompt input
-structured filters
-supported genre, mood, and language options
-recommendation count selection
-extraction audit information
-recommendation cards
-match scores
-metadata and synopsis
-score breakdown visualization
-system workflow explanation
-AI transparency and academic disclaimer
+Potential future classes could distinguish vegetation loss from other causes of NDVI decline, such as seasonal variation, agricultural activity, soil exposure, or other land-cover changes.
 
-The frontend communicates with the Flask backend using JSON requests.
+The AI component is not presented as production-validated in the current release because a suitable labeled training dataset was not available for reliable model development and evaluation.
 
-AI Transparency
+---
 
-The project separates AI-assisted interpretation from deterministic recommendation ranking.
+## Limitations
 
-Gemini is responsible for:
-interpreting natural-language preferences
-extracting structured user intent
-Python recommendation logic is responsible for:
-selecting candidates from the local catalog
-calculating recommendation scores
-ranking candidates
-producing score breakdowns and match reasons
+- NDVI decline alone does not prove deforestation.
+- A fixed threshold can produce false positives and false negatives.
+- The current workflow uses a single Sentinel-2 tile for the dynamic prototype.
+- January is used for the current standardized comparison workflow.
+- Scene selection and satellite-data availability affect the result.
+- The current prototype does not provide a validated AI classification accuracy metric.
+- Community/report records are browser-local rather than server-side and shared.
+- Free cloud hosting may restart or sleep the service, and generated analysis files should not be treated as permanent storage.
 
-This separation makes the recommendation process easier to inspect and test.
+---
 
-Security Considerations
-API credentials are loaded from environment variables.
-.env is excluded from Git.
-.env.example contains only configuration structure.
-Secrets are not intended to be exposed through API responses.
-The Gemini API key is not required by the frontend.
-Generated AI preferences are validated against supported catalog taxonomies.
+## Future Scope
 
-This is an academic prototype and has not undergone a production security audit.
+- Integrate a labeled satellite-image dataset.
+- Train and validate a supervised AI/ML change classifier.
+- Add confidence scores and priority levels.
+- Support larger areas and multiple satellite tiles.
+- Add longer temporal histories and seasonal comparisons.
+- Add additional spectral indices such as EVI and NDWI.
+- Introduce persistent database-backed communities and reports.
+- Add authenticated user accounts and role-based workflows.
+- Add automated monitoring alerts for repeated vegetation-loss signals.
+- Improve validation using field or authoritative land-cover data.
 
-Limitations
-The catalog is curated locally rather than being a live streaming catalog.
-Recommendations are limited to titles present in the local dataset.
-The scoring model is a project-defined heuristic, not a trained production recommendation model.
-Gemini extraction quality depends on the configured API and model behavior.
-Offline fallback uses heuristic pattern matching and is less flexible than an LLM.
-The project does not represent Netflix's internal recommendation architecture.
-No claim is made that the recommendations reproduce Netflix's real-world ranking behavior.
-The project is not production-ready software.
-Future Improvements
+---
 
-Possible future development includes:
+## Responsible Use
 
-larger and externally sourced datasets
-user profiles and persistent preferences
-collaborative filtering
-embedding-based semantic retrieval
-vector databases
-richer preference learning
-recommendation feedback loops
-explanation quality improvements
-authentication
-database-backed catalog management
-cloud deployment
-performance and security hardening
-evaluation using recommendation-system metrics
-Academic Disclaimer
+This project is intended as a decision-support and monitoring prototype. Satellite-derived change signals should be reviewed with appropriate geographic, seasonal, land-use, and contextual information before being treated as evidence of actual deforestation or used for enforcement decisions.
 
-This project was developed as a student project prototype for:
+---
 
-NETFLIX — The Discovery Problem
+## AI and External Tool Disclosure
 
-It is an independent implementation for educational purposes.
+The project was developed with AI-assisted tooling during the hackathon workflow.
 
-It is not affiliated with, sponsored by, endorsed by, or developed by Netflix.
+AI tools were used for tasks such as:
 
-Netflix names and concepts are referenced only to describe the assigned project problem context.
+- Development assistance and debugging
+- Code generation and refinement
+- UI/content iteration
+- Explanations and documentation support
 
-Project Status
-Curated content catalog
-Catalog schema validation
-Deterministic recommendation engine
-Recommendation scoring breakdown
-Flask backend
-Structured recommendation API
-Natural-language recommendation API
-Gemini integration
-Offline fallback extraction
-Interactive frontend
-Automated tests
-Security/secrets configuration
-Project documentation
-Current verified test result
+External services/APIs used by the project include:
 
-61 tests passed.
+- Microsoft Planetary Computer / Sentinel-2 STAC data access
+- OpenStreetMap-based map/geocoding services where applicable
+- Leaflet.js for interactive mapping
+- Render for deployment
 
-License
+Any generated code or AI-assisted components should be reviewed and tested by the project team before use.
 
-This project is an academic/student prototype. Add an appropriate open-source license if the project is intended to be distributed publicly.
+---
+
+## Hackathon Context
+
+**Event:** National Level Hackathon on AI for Sustainability  
+**Organizer:** Department of Data Analytics & Mathematical Sciences, School of Sciences, JAIN (Deemed-to-be University)  
+**Dates:** 24–25 September 2026  
+**Theme:** AI for Sustainability  
+**Project:** Satellite-Based Deforestation Monitoring
+
+---
+
+## Team
+
+Developed by a student hackathon team as a sustainability-focused software prototype.
+
+---
+
+## License
+
+No open-source license has been declared for this repository at this time. Unless a license is added, reuse of the source code should not be assumed to be permitted.
+
+---
+
+## Links
+
+- **Live Demo:** https://satellite-based-deforestation-monitoring.onrender.com/
+- **GitHub:** https://github.com/Shashank-d404/satellite-based-deforestation-monitoring
